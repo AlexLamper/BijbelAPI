@@ -88,9 +88,21 @@ async def log_requests(request: Request, call_next):
 def load_all_versions():
     versions_dir = "data"
     versions = {}
+    
+    # Only load ASV by default to save memory on Raspberry Pi
+    # Other versions can be loaded on-demand if needed
+    default_version = "asv"
+    
     for filename in os.listdir(versions_dir):
         if filename.endswith(".json"):
             version_name = filename.replace(".json", "")
+            
+            # Skip non-default versions to save memory
+            if version_name != default_version:
+                logging.info(f"Skipping {version_name} to save memory (only loading {default_version})")
+                continue
+                
+            logging.info(f"Loading Bible version: {version_name}")
             with open(os.path.join(versions_dir, filename), encoding="utf-8") as f:
                 raw_data = json.load(f)
             structured_data = {}
