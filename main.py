@@ -443,7 +443,12 @@ class ParseMultipleRequest(BaseModel):
 def parse_reference(request: Request, parse_req: ParseRequest):
     """Parse a single Bible reference with complex parsing support."""
     try:
-        parser = ReferenceParser(all_versions=all_versions, version=parse_req.version)
+        # Ensure version data is loaded
+        version_key = get_version_key(parse_req.version)
+        if not version_key:
+            raise HTTPException(status_code=404, detail=f"Version '{parse_req.version}' not found")
+        
+        parser = ReferenceParser(all_versions=loaded_versions, version=parse_req.version)
         result = parser.parse(parse_req.reference, parse_req.version)
         return result
     except Exception as e:
@@ -454,7 +459,12 @@ def parse_reference(request: Request, parse_req: ParseRequest):
 def parse_single_reference(request: Request, reference: str, version: str = "asv"):
     """Parse a single Bible reference via GET request."""
     try:
-        parser = ReferenceParser(all_versions=all_versions, version=version)
+        # Ensure version data is loaded
+        version_key = get_version_key(version)
+        if not version_key:
+            raise HTTPException(status_code=404, detail=f"Version '{version}' not found")
+        
+        parser = ReferenceParser(all_versions=loaded_versions, version=version)
         result = parser.parse(reference, version)
         return result
     except Exception as e:
@@ -465,7 +475,12 @@ def parse_single_reference(request: Request, reference: str, version: str = "asv
 def parse_multiple_references(request: Request, parse_req: ParseMultipleRequest):
     """Parse multiple Bible references with complex parsing support."""
     try:
-        parser = ReferenceParser(all_versions=all_versions, version=parse_req.version)
+        # Ensure version data is loaded
+        version_key = get_version_key(parse_req.version)
+        if not version_key:
+            raise HTTPException(status_code=404, detail=f"Version '{parse_req.version}' not found")
+        
+        parser = ReferenceParser(all_versions=loaded_versions, version=parse_req.version)
         results = []
         for reference in parse_req.references:
             result = parser.parse(reference, parse_req.version)
