@@ -4,5 +4,4 @@ python-dotenv
 slowapi
 sqlalchemy
 stripe
-requests
 pydantic
