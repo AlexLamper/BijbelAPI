@@ -8,6 +8,5 @@ cross-chapter references.
 
 from .reference_parser import ReferenceParser
 from .book_normalizer import BookNormalizer
-from .verse_formatter import VerseFormatter
 
-__all__ = ['ReferenceParser', 'BookNormalizer', 'VerseFormatter']
+__all__ = ['ReferenceParser', 'BookNormalizer']

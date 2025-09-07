@@ -12,7 +12,6 @@ import re
 import requests
 from typing import Dict, List, Any, Optional, Tuple
 from .book_normalizer import BookNormalizer
-from .verse_formatter import VerseFormatter
 
 class ReferenceParser:
     """Parses complex Bible references and fetches formatted text."""
@@ -28,7 +27,6 @@ class ReferenceParser:
         self.base_url = base_url
         self.version = version
         self.book_normalizer = BookNormalizer()
-        self.verse_formatter = VerseFormatter()
     
     def parse(self, reference: str, version: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -87,6 +85,11 @@ class ReferenceParser:
         if '(' in reference and ')' in reference:
             return True
         
+        
+        # Check for optional verses in brackets
+        if '[' in reference and ']' in reference:
+            return True
+        
         return False
     
     def _handle_simple_reference(self, reference: str, version: str) -> Dict[str, Any]:
@@ -110,8 +113,8 @@ class ReferenceParser:
             if not verses:
                 raise ValueError("No verses found")
             
-            # Format text
-            formatted_text = self.verse_formatter.format_verses(verses)
+            # Return raw verses (formatting will be done by liturgical_display)
+            formatted_text = self._format_verses_simple(verses)
             
             return {
                 "reference": reference,
@@ -133,6 +136,11 @@ class ReferenceParser:
     def _handle_complex_reference(self, reference: str, version: str) -> Dict[str, Any]:
         """Handle complex references with special parsing logic."""
         try:
+            
+            # Check for optional verses in brackets
+            if '[' in reference and ']' in reference:
+                return self._handle_optional_verses(reference, version)
+            
             # Check for discontinuous ranges
             if ',' in reference:
                 return self._handle_discontinuous_range(reference, version)
@@ -211,7 +219,7 @@ class ReferenceParser:
                     continue
                 
                 # Parse verse range
-                verse_part = self.verse_formatter.clean_verse_suffix(verse_part)
+                verse_part = self._clean_verse_suffix(verse_part)
                 verses = self._extract_verses_from_chapter(chapter_data, verse_part)
                 all_verses.extend(verses)
             
@@ -219,7 +227,7 @@ class ReferenceParser:
                 raise ValueError("No verses found")
             
             # Format text
-            formatted_text = self.verse_formatter.format_verses(all_verses)
+            formatted_text = self._format_verses_simple(all_verses)
             
             return {
                 "reference": reference,
@@ -288,7 +296,7 @@ class ReferenceParser:
                 raise ValueError("No verses found")
             
             # Format text
-            formatted_text = self.verse_formatter.format_verses(all_verses)
+            formatted_text = self._format_verses_simple(all_verses)
             
             return {
                 "reference": reference,
@@ -308,6 +316,54 @@ class ReferenceParser:
                 "formatted_text": f"[Reading: {reference}]"
             }
     
+    
+    def _handle_optional_verses(self, reference: str, version: str) -> Dict[str, Any]:
+        """Handle optional verses like 'Luke 1:39-45[46-55]'."""
+        try:
+            # Extract the main reference and optional part
+            if '[' in reference and ']' in reference:
+                main_part = reference.split('[')[0].strip()
+                optional_part = reference.split('[')[1].split(']')[0].strip()
+                
+                # Parse the main reference
+                main_result = self._handle_simple_reference(main_part, version)
+                
+                if main_result["parsed"]:
+                    # Parse optional verses separately
+                    # Extract book and chapter from main part
+                    book_chapter, verse_part = main_part.split(':', 1)
+                    book_chapter_parts = book_chapter.rsplit(' ', 1)
+                    
+                    if len(book_chapter_parts) == 2:
+                        book = book_chapter_parts[0].strip()
+                        chapter = book_chapter_parts[1].strip()
+                    else:
+                        book = book_chapter
+                        chapter = "1"
+                    
+                    # Normalize book name
+                    book = self.book_normalizer.normalize(book)
+                    
+                    # Get chapter data for optional verses
+                    chapter_data = self._get_chapter_data(book, chapter, version)
+                    if chapter_data:
+                        optional_verses = self._extract_verses_from_chapter(chapter_data, optional_part)
+                        main_result["optional_verses"] = optional_verses
+                    
+                    main_result["reference"] = reference  # Keep original reference
+                
+                return main_result
+            else:
+                raise ValueError("Invalid optional verse format")
+                
+        except Exception as e:
+            return {
+                "reference": reference,
+                "parsed": False,
+                "error": str(e),
+                "formatted_text": f"[Reading: {reference}]"
+            }
+    
     def _handle_complex_syntax(self, reference: str, version: str) -> Dict[str, Any]:
         """Handle complex syntax with parentheses and other special characters."""
         # For now, treat as simple reference after cleaning
@@ -318,7 +374,9 @@ class ReferenceParser:
     def _parse_simple_reference(self, reference: str) -> Tuple[str, str, str]:
         """Parse a simple reference into book, chapter, verse range."""
         if ':' not in reference:
-            raise ValueError("Invalid reference format")
+            # This might be a chapter-only reference like "Philemon 1-21"
+            # or a book-only reference like "Psalm 146"
+            return self._parse_chapter_only_reference(reference)
         
         parts = reference.split(':')
         if len(parts) != 2:
@@ -337,6 +395,25 @@ class ReferenceParser:
             chapter = "1"
         
         return book, chapter, verse_range
+    
+    def _parse_chapter_only_reference(self, reference: str) -> Tuple[str, str, str]:
+        """Parse chapter-only references like 'Philemon 1-21' or 'Psalm 146'."""
+        # Split by space to get book and chapter info
+        parts = reference.split()
+        if len(parts) < 2:
+            raise ValueError("Invalid reference format")
+        
+        book = parts[0].strip()
+        chapter_info = parts[1].strip()
+        
+        # Check if it's a range like "1-21"
+        if '-' in chapter_info:
+            # This is a chapter range like "Philemon 1-21"
+            start_chapter, end_chapter = chapter_info.split('-', 1)
+            return book, start_chapter, f"1-{end_chapter}"  # Get all verses from start to end chapter
+        else:
+            # This is a single chapter like "Psalm 146"
+            return book, chapter_info, "1-end"  # Get all verses in the chapter
     
     def _get_chapter_data(self, book: str, chapter: str, version: str) -> Optional[Dict[str, Any]]:
         """Get chapter data from Scriptura API."""
@@ -364,7 +441,7 @@ class ReferenceParser:
         if '-' in verse_range:
             # Range of verses
             start_verse, end_verse = verse_range.split('-', 1)
-            start_verse = self.verse_formatter.clean_verse_suffix(start_verse.strip())
+            start_verse = self._clean_verse_suffix(start_verse.strip())
             start_verse = int(start_verse)
             
             if end_verse.strip().lower() == 'end':
@@ -376,7 +453,7 @@ class ReferenceParser:
                     end_verse = start_verse
             else:
                 # Clean verse suffix before converting to int
-                end_verse = self.verse_formatter.clean_verse_suffix(end_verse.strip())
+                end_verse = self._clean_verse_suffix(end_verse.strip())
                 end_verse = int(end_verse)
             
             # Extract verses from range
@@ -389,7 +466,7 @@ class ReferenceParser:
                     })
         else:
             # Single verse
-            clean_verse_range = self.verse_formatter.clean_verse_suffix(verse_range)
+            clean_verse_range = self._clean_verse_suffix(verse_range)
             verse_text = chapter_data['verses'].get(clean_verse_range)
             if verse_text:
                 verses.append({
@@ -410,3 +487,27 @@ class ReferenceParser:
                     'text': verse_text
                 })
         return verses
+    
+    def _clean_verse_suffix(self, verse_part: str) -> str:
+        """Clean verse suffixes like 'a', 'b' from verse references."""
+        # Remove common suffixes
+        suffixes = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+        for suffix in suffixes:
+            if verse_part.endswith(suffix):
+                return verse_part[:-1]
+        
+        return verse_part
+    
+    def _format_verses_simple(self, verses: List[Dict[str, Any]]) -> str:
+        """Simple formatting for verses (just join with spaces)."""
+        if not verses:
+            return ""
+        
+        formatted_verses = []
+        for verse in verses:
+            verse_num = verse.get('verse', '')
+            text = verse.get('text', '')
+            if verse_num and text:
+                formatted_verses.append(f"{verse_num} {text}")
+        
+        return " ".join(formatted_verses)
