@@ -41,30 +41,29 @@ class TestReferenceParser:
     
     def setup_method(self):
         """Set up test fixtures."""
-        # Mock the parser to avoid actual API calls during testing
-        self.parser = ReferenceParser(base_url="http://localhost:8081", version="asv")
-        
-        # Mock the _get_chapter_data method
-        self.parser._get_chapter_data = self._mock_get_chapter_data
-    
-    def _mock_get_chapter_data(self, book, chapter, version):
-        """Mock chapter data for testing."""
-        # Return mock data for testing
-        return {
-            "verses": {
-                "1": "The word that came to Jeremiah from the Lord:",
-                "2": "Arise and go down to the potter's house, and there I will let you hear my words.",
-                "3": "So I went down to the potter's house, and there he was working at his wheel.",
-                "4": "The vessel he was making of clay was spoiled in the potter's hand, and he reworked it into another vessel, as seemed good to him.",
-                "5": "Then the word of the Lord came to me:",
-                "6": "Can I not do with you, O house of Israel, just as this potter has done? says the Lord. Just like the clay in the potter's hand, so are you in my hand, O house of Israel.",
-                "7": "At one moment I may declare concerning a nation or a kingdom, that I will pluck up and break down and destroy it,",
-                "8": "but if that nation, concerning which I have spoken, turns from its evil, I will change my mind about the disaster that I intended to bring on it.",
-                "9": "And at another moment I may declare concerning a nation or a kingdom that I will build and plant it,",
-                "10": "but if it does evil in my sight, not listening to my voice, then I will change my mind about the good that I had intended to do to it.",
-                "11": "Now, therefore, say to the people of Judah and the inhabitants of Jerusalem: Thus says the Lord: Look, I am a potter shaping evil against you and devising a plan against you. Turn now, all of you from your evil way, and amend your ways and your doings."
+        # Mock the parser with dummy data to avoid actual API calls during testing
+        mock_versions = {
+            "asv": {
+                "data": {
+                    "Jeremiah": {
+                        "18": {
+                            "1": "The word that came to Jeremiah from the Lord:",
+                            "2": "Arise and go down to the potter's house, and there I will let you hear my words.",
+                            "3": "So I went down to the potter's house, and there he was working at his wheel.",
+                            "4": "The vessel he was making of clay was spoiled in the potter's hand, and he reworked it into another vessel, as seemed good to him.",
+                            "5": "Then the word of the Lord came to me:",
+                            "6": "Can I not do with you, O house of Israel, just as this potter has done? says the Lord. Just like the clay in the potter's hand, so are you in my hand, O house of Israel.",
+                            "7": "At one moment I may declare concerning a nation or a kingdom, that I will pluck up and break down and destroy it,",
+                            "8": "but if that nation, concerning which I have spoken, turns from its evil, I will change my mind about the disaster that I intended to bring on it.",
+                            "9": "And at another moment I may declare concerning a nation or a kingdom that I will build and plant it,",
+                            "10": "but if it does evil in my sight, not listening to my voice, then I will change my mind about the good that I had intended to do to it.",
+                            "11": "Now, therefore, say to the people of Judah and the inhabitants of Jerusalem: Thus says the Lord: Look, I am a potter shaping evil against you and devising a plan against you. Turn now, all of you from your evil way, and amend your ways and your doings."
+                        }
+                    }
+                }
             }
         }
+        self.parser = ReferenceParser(all_versions=mock_versions, version="asv")
     
     def test_parse_simple_reference(self):
         """Test parsing simple references like 'Jeremiah 18:1-11'."""

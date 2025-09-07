@@ -361,9 +361,7 @@ class ParseMultipleRequest(BaseModel):
 def parse_reference(request: Request, parse_req: ParseRequest):
     """Parse a single Bible reference with complex parsing support."""
     try:
-        # Use the request's base URL
-        base_url = f"{request.url.scheme}://{request.url.netloc}"
-        parser = ReferenceParser(base_url=base_url, version=parse_req.version)
+        parser = ReferenceParser(all_versions=all_versions, version=parse_req.version)
         result = parser.parse(parse_req.reference, parse_req.version)
         return result
     except Exception as e:
@@ -374,9 +372,7 @@ def parse_reference(request: Request, parse_req: ParseRequest):
 def parse_single_reference(request: Request, reference: str, version: str = "asv"):
     """Parse a single Bible reference via GET request."""
     try:
-        # Use the same base URL as the main API
-        base_url = request.url_for("serve_index").replace("/", "")
-        parser = ReferenceParser(base_url=base_url, version=version)
+        parser = ReferenceParser(all_versions=all_versions, version=version)
         result = parser.parse(reference, version)
         return result
     except Exception as e:
@@ -387,9 +383,7 @@ def parse_single_reference(request: Request, reference: str, version: str = "asv
 def parse_multiple_references(request: Request, parse_req: ParseMultipleRequest):
     """Parse multiple Bible references with complex parsing support."""
     try:
-        # Use the request's base URL
-        base_url = f"{request.url.scheme}://{request.url.netloc}"
-        parser = ReferenceParser(base_url=base_url, version=parse_req.version)
+        parser = ReferenceParser(all_versions=all_versions, version=parse_req.version)
         results = []
         for reference in parse_req.references:
             result = parser.parse(reference, parse_req.version)

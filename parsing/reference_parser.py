@@ -9,22 +9,21 @@ Handles parsing of complex Bible references including:
 """
 
 import re
-import requests
 from typing import Dict, List, Any, Optional, Tuple
 from .book_normalizer import BookNormalizer
 
 class ReferenceParser:
     """Parses complex Bible references and fetches formatted text."""
     
-    def __init__(self, base_url: str = "http://localhost:8081", version: str = "asv"):
+    def __init__(self, all_versions: dict, version: str = "asv"):
         """
         Initialize the reference parser.
         
         Args:
-            base_url: Base URL for Scriptura API
+            all_versions: Dictionary containing all Bible versions data
             version: Default Bible version
         """
-        self.base_url = base_url
+        self.all_versions = all_versions
         self.version = version
         self.book_normalizer = BookNormalizer()
     
@@ -416,23 +415,47 @@ class ReferenceParser:
             return book, chapter_info, "1-end"  # Get all verses in the chapter
     
     def _get_chapter_data(self, book: str, chapter: str, version: str) -> Optional[Dict[str, Any]]:
-        """Get chapter data from Scriptura API."""
+        """Get chapter data from loaded versions."""
         try:
-            url = f"{self.base_url}/api/chapter"
-            params = {
-                'book': book,
-                'chapter': chapter,
-                'version': version
-            }
+            # Get version key (same logic as main.py)
+            version_key = None
+            for key, v in self.all_versions.items():
+                if key.lower() == version.lower():
+                    version_key = key
+                    break
             
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
+            if not version_key:
+                return None
+                
+            data = self.all_versions[version_key]["data"]
             
-            return response.json()
+            # Normalize book name (same logic as main.py)
+            book_key = self._normalize_book_name_for_version(version_key, book)
+            if not book_key:
+                return None
+                
+            # Get chapter data
+            if book_key in data and chapter in data[book_key]:
+                return {
+                    "version": version_key,
+                    "book": book_key,
+                    "chapter": chapter,
+                    "verses": data[book_key][chapter]
+                }
+            
+            return None
             
         except Exception as e:
-            print(f"Error fetching chapter data: {e}")
+            print(f"Error getting chapter data: {e}")
             return None
+    
+    def _normalize_book_name_for_version(self, version_key: str, book_name: str) -> Optional[str]:
+        """Normalize book name for a specific version (same logic as main.py)."""
+        data = self.all_versions[version_key]["data"]
+        for name in data:
+            if name.lower().replace("ë", "e") == book_name.lower().replace("ë", "e"):
+                return name
+        return None
     
     def _extract_verses_from_chapter(self, chapter_data: Dict[str, Any], verse_range: str) -> List[Dict[str, Any]]:
         """Extract specific verses from chapter data."""
