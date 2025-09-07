@@ -86,47 +86,55 @@ async def log_requests(request: Request, call_next):
 
 # --- Multi-version support ---
 def load_all_versions():
+    # Return empty dict to save memory - load versions on-demand
+    logging.info("Skipping JSON loading at startup to save memory")
+    return {}
+
+# Cache for loaded versions
+loaded_versions = {}
+
+def get_version_data(version_name):
+    """Load version data on-demand to save memory"""
+    if version_name in loaded_versions:
+        return loaded_versions[version_name]
+    
     versions_dir = "data"
-    versions = {}
+    filename = f"{version_name}.json"
+    filepath = os.path.join(versions_dir, filename)
     
-    # Only load ASV by default to save memory on Raspberry Pi
-    # Other versions can be loaded on-demand if needed
-    default_version = "asv"
+    if not os.path.exists(filepath):
+        return None
+        
+    logging.info(f"Loading Bible version on-demand: {version_name}")
+    with open(filepath, encoding="utf-8") as f:
+        raw_data = json.load(f)
     
-    for filename in os.listdir(versions_dir):
-        if filename.endswith(".json"):
-            version_name = filename.replace(".json", "")
-            
-            # Skip non-default versions to save memory
-            if version_name != default_version:
-                logging.info(f"Skipping {version_name} to save memory (only loading {default_version})")
-                continue
-                
-            logging.info(f"Loading Bible version: {version_name}")
-            with open(os.path.join(versions_dir, filename), encoding="utf-8") as f:
-                raw_data = json.load(f)
-            structured_data = {}
-            for verse in raw_data["verses"]:
-                book = verse["book_name"]
-                chapter = str(verse["chapter"])
-                verse_number = str(verse["verse"])
-                text = verse["text"]
-                if book not in structured_data:
-                    structured_data[book] = {}
-                if chapter not in structured_data[book]:
-                    structured_data[book][chapter] = {}
-                structured_data[book][chapter][verse_number] = text
-            versions[version_name] = {
-                "meta": raw_data.get("metadata", {}),
-                "data": structured_data
-            }
-    return versions
+    structured_data = {}
+    for verse in raw_data["verses"]:
+        book = verse["book_name"]
+        chapter = str(verse["chapter"])
+        verse_number = str(verse["verse"])
+        text = verse["text"]
+        if book not in structured_data:
+            structured_data[book] = {}
+        if chapter not in structured_data[book]:
+            structured_data[book][chapter] = {}
+        structured_data[book][chapter][verse_number] = text
+    
+    version_data = {
+        "meta": raw_data.get("metadata", {}),
+        "data": structured_data
+    }
+    
+    loaded_versions[version_name] = version_data
+    return version_data
 
 all_versions = load_all_versions()
 
 def get_version_key(version: str):
     version = version.lower()
-    for key, v in all_versions.items():
+    # Check loaded versions first
+    for key, v in loaded_versions.items():
         meta = v["meta"]
         if (
             key.lower() == version
@@ -135,10 +143,45 @@ def get_version_key(version: str):
             or meta.get("name", "").lower() == version
         ):
             return key
+    
+    # Try to load the version on-demand
+    version_data = get_version_data(version)
+    if version_data:
+        return version
+    
+    # Check common aliases
+    aliases = {
+        "asv": "asv",
+        "american standard": "asv",
+        "kjv": "kjv", 
+        "king james": "kjv"
+    }
+    
+    if version in aliases:
+        version_data = get_version_data(aliases[version])
+        if version_data:
+            return aliases[version]
+    
     return None
 
+def get_version_data_by_key(version_key):
+    """Get version data by key, loading on-demand if needed"""
+    if version_key in loaded_versions:
+        return loaded_versions[version_key]
+    
+    # Try to load the version
+    version_data = get_version_data(version_key)
+    if version_data:
+        return version_data
+    
+    # Fallback to checking all_versions (should be empty now)
+    return all_versions.get(version_key)
+
 def normalize_book_name(version_key, book_name):
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        return book_name
+    data = version_data["data"]
     for name in data:
         if name.lower().replace("ë", "e") == book_name.lower().replace("ë", "e"):
             return name
@@ -158,7 +201,10 @@ def get_random_verse(request: Request, version: str = "statenvertaling"):
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     book = random.choice(list(data.keys()))
     chapter = random.choice(list(data[book].keys()))
     verse = random.choice(list(data[book][chapter].keys()))
@@ -176,7 +222,10 @@ def get_verse(book: str, chapter: str, verse: str, request: Request, version: st
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     book_key = normalize_book_name(version_key, book)
     if not book_key:
         raise HTTPException(status_code=404, detail="Boek niet gevonden")
@@ -198,7 +247,10 @@ def get_passage(book: str, chapter: str, start: int, end: int, request: Request,
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     book_key = normalize_book_name(version_key, book)
     if not book_key:
         raise HTTPException(status_code=404, detail="Boek niet gevonden")
@@ -221,7 +273,10 @@ def get_books(request: Request, version: str = "statenvertaling"):
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    return list(all_versions[version_key]["data"].keys())
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    return list(version_data["data"].keys())
 
 @app.get("/api/chapters")
 @limiter.limit("30/minute")
@@ -229,7 +284,10 @@ def get_chapters(book: str, request: Request, version: str = "statenvertaling"):
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     book_key = normalize_book_name(version_key, book)
     if not book_key:
         raise HTTPException(status_code=404, detail="Boek niet gevonden")
@@ -241,7 +299,10 @@ def get_verses(book: str, chapter: str, request: Request, version: str = "staten
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     book_key = normalize_book_name(version_key, book)
     if not book_key:
         raise HTTPException(status_code=404, detail="Boek niet gevonden")
@@ -256,7 +317,10 @@ def search_verses(request: Request, query: str = Query(..., min_length=1), versi
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     results = []
     for book, chapters in data.items():
         for chapter, verses in chapters.items():
@@ -276,7 +340,10 @@ def get_daytext(request: Request, seed: str = None, version: str = "statenvertal
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     books = list(data.keys())
     base = seed if seed else date.today().isoformat()
     hash_val = int(hashlib.sha256(base.encode()).hexdigest(), 16)
@@ -315,7 +382,10 @@ def get_chapter(book: str, chapter: str, request: Request, version: str = "state
     version_key = get_version_key(version)
     if not version_key:
         raise HTTPException(status_code=404, detail="Vertaling niet gevonden")
-    data = all_versions[version_key]["data"]
+    version_data = get_version_data_by_key(version_key)
+    if not version_data:
+        raise HTTPException(status_code=404, detail="Version not found")
+    data = version_data["data"]
     book_key = normalize_book_name(version_key, book)
     if not book_key:
         raise HTTPException(status_code=404, detail="Boek niet gevonden")
