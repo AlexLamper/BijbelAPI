@@ -357,7 +357,7 @@ class ParseMultipleRequest(BaseModel):
 
 # Parsing endpoints
 @app.post("/api/parse/reference")
-@limiter.limit("100/minute")
+@limiter.limit("20/minute")
 def parse_reference(request: Request, parse_req: ParseRequest):
     """Parse a single Bible reference with complex parsing support."""
     try:
@@ -368,7 +368,7 @@ def parse_reference(request: Request, parse_req: ParseRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/parse/reference/{reference}")
-@limiter.limit("100/minute")
+@limiter.limit("20/minute")
 def parse_single_reference(request: Request, reference: str, version: str = "asv"):
     """Parse a single Bible reference via GET request."""
     try:
@@ -379,7 +379,7 @@ def parse_single_reference(request: Request, reference: str, version: str = "asv
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/parse/references")
-@limiter.limit("50/minute")
+@limiter.limit("10/minute")
 def parse_multiple_references(request: Request, parse_req: ParseMultipleRequest):
     """Parse multiple Bible references with complex parsing support."""
     try:
