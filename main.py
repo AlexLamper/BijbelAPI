@@ -342,6 +342,56 @@ def secure_data(request: Request, _: str = Depends(verify_api_key)):
     return {"message": "Je bent geauthenticeerd!"}
 # --- einde authenticatie ---
 
+# Import parsing modules
+from parsing.reference_parser import ReferenceParser
+from pydantic import BaseModel
+
+# Pydantic models for parsing requests
+class ParseRequest(BaseModel):
+    reference: str
+    version: str = "asv"
+
+class ParseMultipleRequest(BaseModel):
+    references: list[str]
+    version: str = "asv"
+
+# Parsing endpoints
+@app.post("/api/parse/reference")
+@limiter.limit("100/minute")
+def parse_reference(request: Request, parse_req: ParseRequest):
+    """Parse a single Bible reference with complex parsing support."""
+    try:
+        parser = ReferenceParser(base_url=f"http://localhost:8081", version=parse_req.version)
+        result = parser.parse(parse_req.reference, parse_req.version)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/parse/reference/{reference}")
+@limiter.limit("100/minute")
+def parse_single_reference(request: Request, reference: str, version: str = "asv"):
+    """Parse a single Bible reference via GET request."""
+    try:
+        parser = ReferenceParser(base_url=f"http://localhost:8081", version=version)
+        result = parser.parse(reference, version)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/parse/references")
+@limiter.limit("50/minute")
+def parse_multiple_references(request: Request, parse_req: ParseMultipleRequest):
+    """Parse multiple Bible references with complex parsing support."""
+    try:
+        parser = ReferenceParser(base_url=f"http://localhost:8081", version=parse_req.version)
+        results = []
+        for reference in parse_req.references:
+            result = parser.parse(reference, parse_req.version)
+            results.append(result)
+        return {"references": results}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.post("/stripe/webhook")
 @limiter.limit("5/minute")
 async def stripe_webhook(request: Request):
