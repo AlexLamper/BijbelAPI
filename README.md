@@ -17,7 +17,8 @@ Supports various languages including Dutch, English, Afrikaans, and more. Develo
 - 🔍 **Text search** across the entire Bible  
 - 📚 **Structure overview** of books, chapters, and verses  
 - 📖 **Specific verses or passages** retrieval  
-- 📅 **Daily texts** generation (optional with seed)  
+- 📅 **Daily texts** generation (optional with seed)
+- 🧠 **Smart reference parsing** for complex Bible references  
 
 ---
 
@@ -26,19 +27,74 @@ Supports various languages including Dutch, English, Afrikaans, and more. Develo
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/` | Homepage with API information + link to docs |
-| GET | `/random` | Random verse |
-| GET | `/verse?book=...&chapter=...&verse=...` | Specific verse |
-| GET | `/passage?book=...&chapter=...&start=...&end=...` | Multiple verses |
-| GET | `/books` | All books |
-| GET | `/chapters?book=...` | Chapters in book |
-| GET | `/verses?book=...&chapter=...` | Verse numbers in chapter |
-| GET | `/search?query=...` | Search in Bible text |
-| GET | `/daytext?seed=...` | Daily text, optional seed |
-| GET | `/versions` | Available translations |
+| GET | `/api/random` | Random verse |
+| GET | `/api/verse?book=...&chapter=...&verse=...` | Specific verse |
+| GET | `/api/passage?book=...&chapter=...&start=...&end=...` | Multiple verses |
+| GET | `/api/books` | All books |
+| GET | `/api/chapters?book=...` | Chapters in book |
+| GET | `/api/verses?book=...&chapter=...` | Verse numbers in chapter |
+| GET | `/api/search?query=...` | Search in Bible text |
+| GET | `/api/daytext?seed=...` | Daily text, optional seed |
+| GET | `/api/versions` | Available translations |
+| GET | `/api/chapter?book=...&chapter=...` | Entire chapter |
+| **POST** | **`/api/parse/reference`** | **Parse complex Bible reference** |
+| **GET** | **`/api/parse/reference/{ref}`** | **Parse reference via URL** |
+| **POST** | **`/api/parse/references`** | **Parse multiple references** |
 
 👉 All routes are documented via:
 - `/docs` – Swagger UI
 - `/redoc` – ReDoc UI
+
+---
+
+## 🧠 Smart Reference Parsing
+
+The new parsing endpoints handle complex Bible references that traditional APIs struggle with:
+
+### Supported Reference Types
+
+| Type | Example | Description |
+|------|---------|-------------|
+| **Discontinuous ranges** | `Psalm 104:26-36,37` | Multiple verse ranges |
+| **Cross-chapter** | `John 3:16-4:1` | References spanning chapters |
+| **Chapter-only** | `Philemon 1-21` | Entire chapter ranges |
+| **Optional verses** | `Luke 1:39-45[46-55]` | Main + optional verses |
+| **Verse suffixes** | `Habakkuk 3:2-19a` | References with letter suffixes |
+| **End references** | `Jeremiah 18:5-end` | From verse to end of chapter |
+
+### Usage Examples
+
+```bash
+# Parse a complex reference
+curl "http://localhost:8081/api/parse/reference/Psalm%20104:26-36,37?version=asv"
+
+# Parse via POST with custom version
+curl -X POST "http://localhost:8081/api/parse/reference" \
+  -H "Content-Type: application/json" \
+  -d '{"reference": "Luke 1:39-45[46-55]", "version": "asv"}'
+
+# Parse multiple references
+curl -X POST "http://localhost:8081/api/parse/references" \
+  -H "Content-Type: application/json" \
+  -d '{"references": ["Psalm 104:26-36,37", "Jeremiah 18:1-11"], "version": "asv"}'
+```
+
+### Response Format
+
+```json
+{
+  "reference": "Psalm 104:26-36,37",
+  "parsed": true,
+  "book": "Psalms",
+  "chapter": "104",
+  "verses": [
+    {"verse": "26", "text": "There the ships go to and fro..."},
+    {"verse": "27", "text": "All creatures look to you..."},
+    // ... more verses
+  ],
+  "formatted_text": "26 There the ships go to and fro... 27 All creatures look to you..."
+}
+```
 
 ---
 
