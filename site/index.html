@@ -466,165 +466,159 @@
                         <table class="w-full">
                             <thead class="bg-gray-50">
                                 <tr>
+                                    <th class="text-left p-4 font-semibold text-gray-900">Method</th>
                                     <th class="text-left p-4 font-semibold text-gray-900">Endpoint</th>
                                     <th class="text-left p-4 font-semibold text-gray-900">Description</th>
                                     <th class="text-left p-4 font-semibold text-gray-900">Example</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                <!-- GET / -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/random</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Random verse</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/random</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/random')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/</code></td>
+                                    <td class="p-4 text-gray-600">Serve Index</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/</code></td>
                                 </tr>
+
+                                <!-- GET /api/random -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/verse</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Specific verse</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/verse?book=Genesis&chapter=1&verse=1</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/verse?book=Genesis&chapter=1&verse=1')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/random</code></td>
+                                    <td class="p-4 text-gray-600">Get Random Verse</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/random</code></td>
                                 </tr>
+
+                                <!-- GET /api/verse -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/passage</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Multiple verses from one chapter</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/passage?book=Luke&chapter=2&start=1&end=10</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/passage?book=Luke&chapter=2&start=1&end=10')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/verse</code></td>
+                                    <td class="p-4 text-gray-600">Get Verse</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/verse?book=Genesis&chapter=1&verse=1</code></td>
                                 </tr>
+
+                                <!-- GET /api/passage -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/books</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">List of books</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/books</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/books')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/passage</code></td>
+                                    <td class="p-4 text-gray-600">Get Passage</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/passage?book=Luke&chapter=2&start=1&end=10</code></td>
                                 </tr>
+
+                                <!-- GET /api/books -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/chapters</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Chapters in a book</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/chapters?book=Luke</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/chapters?book=Luke')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/books</code></td>
+                                    <td class="p-4 text-gray-600">Get Books</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/books</code></td>
                                 </tr>
+
+                                <!-- GET /api/chapters -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/verses</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Verses in a chapter</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/verses?book=Luke&chapter=2</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/verses?book=Luke&chapter=2')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/chapters</code></td>
+                                    <td class="p-4 text-gray-600">Get Chapters</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/chapters?book=Luke</code></td>
                                 </tr>
+
+                                <!-- GET /api/verses -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/search</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Search by text</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/search?query=peace</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/search?query=peace')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/verses</code></td>
+                                    <td class="p-4 text-gray-600">Get Verses</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/verses?book=Luke&chapter=2</code></td>
                                 </tr>
+
+                                <!-- GET /api/search -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/daytext</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Daily text (optional: ?seed=...)</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/daytext</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/daytext')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/search</code></td>
+                                    <td class="p-4 text-gray-600">Search Verses</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/search?query=peace</code></td>
                                 </tr>
+
+                                <!-- GET /api/daytext -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/versions</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Available translations</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/versions</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/versions')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/daytext</code></td>
+                                    <td class="p-4 text-gray-600">Get Daytext</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/daytext</code></td>
                                 </tr>
-                                <tr class="border-t">
-                                    <td class="p-4">
-                                        <code class="text-sm bg-muted px-2 py-1 rounded">/api/chapter</code>
-                                    </td>
-                                    <td class="p-4 text-muted-foreground">All verses from a chapter</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-muted px-2 py-1 rounded flex-1">/api/chapter?book=Genesis&chapter=1</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" onclick="copyToClipboard('/api/chapter?book=Genesis&chapter=1')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+
+                                <!-- GET /api/versions -->
                                 <tr class="border-t border-gray-200">
                                     <td class="p-4">
-                                        <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/commentary</code>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span>
                                     </td>
-                                    <td class="p-4 text-gray-600">Commentary for a verse or passage</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded flex-1 text-gray-900">/api/commentary?book=John&chapter=3&verse=16</code>
-                                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3" onclick="copyToClipboard('/api/commentary?book=John&chapter=3&verse=16')">
-                                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/versions</code></td>
+                                    <td class="p-4 text-gray-600">Get Versions</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/versions</code></td>
+                                </tr>
+
+                                <!-- GET /api/chapter -->
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span></td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/chapter</code></td>
+                                    <td class="p-4 text-gray-600">Get Chapter</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/chapter?book=Genesis&chapter=1</code></td>
+                                </tr>
+
+                                <!-- GET /api/commentary -->
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span></td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/commentary</code></td>
+                                    <td class="p-4 text-gray-600">Get Commentary</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/commentary?book=John&chapter=3&verse=16</code></td>
+                                </tr>
+
+                                <!-- GET /secure-data -->
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span></td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/secure-data</code></td>
+                                    <td class="p-4 text-gray-600">Secure Data</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/secure-data</code></td>
+                                </tr>
+
+                                <!-- POST /api/parse/reference -->
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">POST</span></td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/parse/reference</code></td>
+                                    <td class="p-4 text-gray-600">Parse Reference</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/parse/reference</code></td>
+                                </tr>
+
+                                <!-- GET /api/parse/reference/{reference} -->
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">GET</span></td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/parse/reference/{reference}</code></td>
+                                    <td class="p-4 text-gray-600">Parse Single Reference</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/parse/reference/John3:16</code></td>
+                                </tr>
+
+                                <!-- POST /api/parse/references -->
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">POST</span></td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/parse/references</code></td>
+                                    <td class="p-4 text-gray-600">Parse Multiple References</td>
+                                    <td class="p-4"><code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-900">/api/parse/references</code></td>
                                 </tr>
                             </tbody>
                         </table>
