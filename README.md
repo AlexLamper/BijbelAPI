@@ -121,7 +121,7 @@ This API is licensed under the [MIT License](LICENSE).
 - GitHub: [@AlexLamper](https://github.com/AlexLamper)
 - Mail: `devlamper06@gmail.com`
 - Scriptura API: [https://www.scriptura-api.com](https://www.scriptura-api.com)
-- Scriptura: [https://www.scriptura-edu.com](https://www.scriptura-edu.com)
+- Scriptura: [https://www.scriptura-edu.com](https://www.scriptura.cloud)
 
 ---
 
