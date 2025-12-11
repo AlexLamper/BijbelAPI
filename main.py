@@ -27,6 +27,9 @@ import logging
 # Configure logging for analytics
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
+# Define Base Directory for absolute paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = FastAPI(
     title="Scriptura API",
     version="1.0.0",
@@ -73,7 +76,7 @@ app.add_middleware(
 )
 
 # Serve static files from /site
-app.mount("/site", __import__("fastapi.staticfiles", fromlist=["StaticFiles"]).StaticFiles(directory="site"), name="site")
+app.mount("/site", __import__("fastapi.staticfiles", fromlist=["StaticFiles"]).StaticFiles(directory=os.path.join(BASE_DIR, "site")), name="site")
 
 # Simple analytics middleware (log endpoint and IP)
 @app.middleware("http")
@@ -86,7 +89,7 @@ async def log_requests(request: Request, call_next):
 
 # --- Multi-version support for Bible texts ---
 def load_all_versions():
-    versions_dir = "data"
+    versions_dir = os.path.join(BASE_DIR, "data")
     versions = {}
     if not os.path.isdir(versions_dir):
         logging.warning(f"Versions dir '{versions_dir}' not found.")
@@ -141,7 +144,7 @@ def normalize_book_name(version_key, book_name):
     return None
 
 # --- Commentary loading (Matthew Henry, etc.) ---
-COMMENTARIES_DIR = "commentaries"
+COMMENTARIES_DIR = os.path.join(BASE_DIR, "commentaries")
 
 def load_commentaries():
     commentaries = {}
@@ -409,7 +412,8 @@ def get_commentary(request: Request, source: str, book: str, chapter: str, verse
 
 # --- API-key authenticatie ---
 # Database setup (SQLite)
-engine = create_engine("sqlite:///./test.db")
+db_path = os.path.join(BASE_DIR, "test.db")
+engine = create_engine(f"sqlite:///{db_path}")
 SessionLocal = sessionmaker(bind=engine)
 Base.metadata.create_all(bind=engine)
 
