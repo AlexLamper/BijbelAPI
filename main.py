@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import json
 import os
+import gzip
 import random
 import hashlib
 from datetime import date
@@ -139,7 +140,7 @@ def normalize_book_name(version_key, book_name):
             return name
     return None
 
-# --- COMMENTARY LOADER (Matthew Henry, etc.) ---
+# --- Commentary loading (Matthew Henry, etc.) ---
 COMMENTARIES_DIR = "commentaries"
 
 def load_commentaries():
@@ -147,16 +148,25 @@ def load_commentaries():
     if not os.path.isdir(COMMENTARIES_DIR):
         logging.warning(f"Commentaries dir '{COMMENTARIES_DIR}' not found.")
         return commentaries
-    for fname in os.listdir(COMMENTARIES_DIR):
-        if fname.endswith(".json"):
-            path = os.path.join(COMMENTARIES_DIR, fname)
+    
+    # Walk through all directories to find JSON files
+    for root, dirs, files in os.walk(COMMENTARIES_DIR):
+        for fname in files:
+            path = os.path.join(root, fname)
+            raw = None
             try:
-                with open(path, encoding="utf-8") as f:
-                    raw = json.load(f)
-                # identify key: meta.id or filename without ext
-                key = raw.get("meta", {}).get("id") or fname.replace(".json", "")
-                commentaries[key] = raw
-                logging.info(f"Loaded commentary '{key}' from {path}")
+                if fname.endswith(".json"):
+                    with open(path, encoding="utf-8") as f:
+                        raw = json.load(f)
+                elif fname.endswith(".json.gz"):
+                    with gzip.open(path, "rt", encoding="utf-8") as f:
+                        raw = json.load(f)
+                
+                if raw:
+                    # identify key: meta.id or filename without ext
+                    key = raw.get("meta", {}).get("id") or fname.replace(".json", "").replace(".gz", "")
+                    commentaries[key] = raw
+                    logging.info(f"Loaded commentary '{key}' from {path}")
             except Exception as e:
                 logging.warning(f"Failed to load commentary file {path}: {e}")
     return commentaries
