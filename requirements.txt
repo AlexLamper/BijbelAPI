@@ -6,4 +6,4 @@ sqlalchemy
 stripe
 pydantic
 requests
-tqdm
+tqdma2wsgi
