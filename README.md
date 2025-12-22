@@ -7,7 +7,7 @@
 </p>
 
 **A REST API for retrieving Bible texts and commentaries across multiple translations.**  
-Supports various languages including Dutch, English, Afrikaans, and more. Developed for developers, theologians, students, and hobby projects who want to use Biblical texts digitally.
+Supports various languages including Dutch, English and African. Developed for developers, theologians, students, and hobby projects who want to use Biblical texts digitally.
 
 ---
 
@@ -121,7 +121,7 @@ This API is licensed under the [MIT License](LICENSE).
 - GitHub: [@AlexLamper](https://github.com/AlexLamper)
 - Mail: `devlamper06@gmail.com`
 - Scriptura API: [https://www.scriptura-api.com](https://www.scriptura-api.com)
-- Scriptura: [https://www.scriptura-edu.com](https://www.scriptura.cloud)
+- Scriptura: [https://www.scriptura.cloud](https://www.scriptura.cloud)
 
 ---
 
