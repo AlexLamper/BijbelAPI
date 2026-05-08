@@ -75,7 +75,9 @@ STRIPE_PRICE_ID_PRO_MONTHLY = os.getenv("STRIPE_PRICE_ID_PRO_MONTHLY", "")
 STRIPE_PRICE_ID_PRO_YEARLY = os.getenv("STRIPE_PRICE_ID_PRO_YEARLY", "")
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8081")
 BILLING_ENFORCED = os.getenv("BILLING_ENFORCED", "false").lower() == "true"
+FREE_TIER_DAILY_LIMIT = int(os.getenv("FREE_TIER_DAILY_LIMIT", "5000"))
 stripe.api_key = STRIPE_SECRET_KEY
+FREE_TIER_USAGE = {}
 
 # CORS settings
 app.add_middleware(
@@ -280,7 +282,7 @@ def health():
 @app.get("/api/random")
 @limiter.limit("20/minute")
 def get_random_verse(request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     book = random.choice(list(data.keys()))
@@ -297,7 +299,7 @@ def get_random_verse(request: Request, version: str = DEFAULT_TRANSLATION, x_api
 @app.get("/api/verse")
 @limiter.limit("30/minute")
 def get_verse(book: str, chapter: str, verse: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     book_key = normalize_book_name(version_key, book)
@@ -318,7 +320,7 @@ def get_verse(book: str, chapter: str, verse: str, request: Request, version: st
 @app.get("/api/passage")
 @limiter.limit("10/minute")
 def get_passage(book: str, chapter: str, start: int, end: int, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     book_key = normalize_book_name(version_key, book)
@@ -340,14 +342,14 @@ def get_passage(book: str, chapter: str, start: int, end: int, request: Request,
 @app.get("/api/books")
 @limiter.limit("30/minute")
 def get_books(request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     return list(all_versions[version_key]["data"].keys())
 
 @app.get("/api/chapters")
 @limiter.limit("30/minute")
 def get_chapters(book: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     book_key = normalize_book_name(version_key, book)
@@ -358,7 +360,7 @@ def get_chapters(book: str, request: Request, version: str = DEFAULT_TRANSLATION
 @app.get("/api/verses")
 @limiter.limit("30/minute")
 def get_verses(book: str, chapter: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     book_key = normalize_book_name(version_key, book)
@@ -372,7 +374,7 @@ def get_verses(book: str, chapter: str, request: Request, version: str = DEFAULT
 @app.get("/api/search")
 @limiter.limit("10/minute")
 def search_verses(request: Request, query: str = Query(..., min_length=1), version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     results = []
@@ -391,7 +393,7 @@ def search_verses(request: Request, query: str = Query(..., min_length=1), versi
 @app.get("/api/daytext")
 @limiter.limit("5/minute")
 def get_daytext(request: Request, seed: str = None, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     books = list(data.keys())
@@ -412,7 +414,7 @@ def get_daytext(request: Request, seed: str = None, version: str = DEFAULT_TRANS
 @app.get("/api/versions")
 @limiter.limit("10/minute")
 def get_versions(request: Request, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     # Return metadata for all versions
     return [
         {
@@ -430,7 +432,7 @@ def get_versions(request: Request, x_api_key: Optional[str] = Security(optional_
 @app.get("/api/chapter")
 @limiter.limit("20/minute")
 def get_chapter(book: str, chapter: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     data = all_versions[version_key]["data"]
     book_key = normalize_book_name(version_key, book)
@@ -450,7 +452,7 @@ def get_chapter(book: str, chapter: str, request: Request, version: str = DEFAUL
 @app.get("/api/commentary")
 @limiter.limit("20/minute")
 def get_commentary(request: Request, source: str, book: str, chapter: str, verse: str = None, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(x_api_key)
+    ensure_paid_access(request, x_api_key)
     """
     Returns commentary for a chapter or specific verse.
 
@@ -496,14 +498,40 @@ def verify_api_key(key: str = Security(api_key_header)):
         raise HTTPException(status_code=403, detail="Ongeldige of verlopen sleutel")
 
 
-def ensure_paid_access(key: Optional[str]) -> None:
+def _request_client_ip(request: Request) -> str:
+    if request.client and request.client.host:
+        return request.client.host
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return "unknown"
+
+
+def _enforce_free_tier_limit(request: Request) -> None:
+    today = date.today().isoformat()
+    ip = _request_client_ip(request)
+    usage_key = (ip, today)
+    count = FREE_TIER_USAGE.get(usage_key, 0) + 1
+    FREE_TIER_USAGE[usage_key] = count
+    if count > FREE_TIER_DAILY_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Free tier limiet bereikt voor vandaag. "
+                "Maak een betaald abonnement aan voor hogere limieten."
+            ),
+        )
+
+
+def ensure_paid_access(request: Request, key: Optional[str]) -> None:
     """
     Enforce billing entitlement when BILLING_ENFORCED=true.
     """
     if not BILLING_ENFORCED:
         return
     if not key:
-        raise HTTPException(status_code=401, detail="API-sleutel ontbreekt")
+        _enforce_free_tier_limit(request)
+        return
 
     session = SessionLocal()
     try:
@@ -555,7 +583,7 @@ class PortalSessionRequest(BaseModel):
 def parse_reference(request: Request, parse_req: ParseRequest, x_api_key: Optional[str] = Security(optional_api_key_header)):
     """Parse a single Bible reference with complex parsing support."""
     try:
-        ensure_paid_access(x_api_key)
+        ensure_paid_access(request, x_api_key)
         version_key = resolve_version_key(parse_req.version)
         parser = ReferenceParser(all_versions=all_versions, version=version_key)
         result = parser.parse(parse_req.reference, version_key)
@@ -568,7 +596,7 @@ def parse_reference(request: Request, parse_req: ParseRequest, x_api_key: Option
 def parse_single_reference(request: Request, reference: str, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     """Parse a single Bible reference via GET request."""
     try:
-        ensure_paid_access(x_api_key)
+        ensure_paid_access(request, x_api_key)
         version_key = resolve_version_key(version)
         parser = ReferenceParser(all_versions=all_versions, version=version_key)
         result = parser.parse(reference, version_key)
@@ -581,7 +609,7 @@ def parse_single_reference(request: Request, reference: str, version: str = DEFA
 def parse_multiple_references(request: Request, parse_req: ParseMultipleRequest, x_api_key: Optional[str] = Security(optional_api_key_header)):
     """Parse multiple Bible references with complex parsing support."""
     try:
-        ensure_paid_access(x_api_key)
+        ensure_paid_access(request, x_api_key)
         version_key = resolve_version_key(parse_req.version)
         parser = ReferenceParser(all_versions=all_versions, version=version_key)
         results = []
@@ -680,6 +708,31 @@ def billing_status(request: Request, key: str = Security(api_key_header)):
         }
     finally:
         session.close()
+
+
+@app.get("/billing/plans")
+@limiter.limit("30/minute")
+def billing_plans(request: Request):
+    return {
+        "currency": "eur",
+        "free": {
+            "price_monthly": 0,
+            "daily_request_limit": FREE_TIER_DAILY_LIMIT,
+            "requires_api_key": False,
+            "description": "Generous free tier met daglimiet per IP.",
+        },
+        "pro_monthly": {
+            "price_id": STRIPE_PRICE_ID_PRO_MONTHLY or "configure_in_env",
+            "daily_request_limit": "hoog / op planbasis",
+            "requires_api_key": True,
+        },
+        "pro_yearly": {
+            "price_id": STRIPE_PRICE_ID_PRO_YEARLY or "configure_in_env",
+            "daily_request_limit": "hoog / op planbasis",
+            "requires_api_key": True,
+        },
+        "billing_enforced": BILLING_ENFORCED,
+    }
 
 @app.post("/stripe/webhook")
 @limiter.limit("5/minute")

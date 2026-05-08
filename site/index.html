@@ -10,7 +10,7 @@
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased">
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div class="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-4">
+        <div class="mx-auto flex max-w-7xl 2xl:max-w-[1600px] items-center justify-between px-6 md:px-8 2xl:px-6 py-4">
             <a href="/" class="flex items-center gap-3">
                 <img src="/public/images/logo.svg" alt="BijbelAPI logo" class="h-10 w-10 rounded-lg">
                 <div>
@@ -21,6 +21,8 @@
             <nav class="hidden items-center gap-6 text-sm md:flex">
                 <a href="#features" class="text-slate-600 hover:text-blue-700">Functies</a>
                 <a href="#api" class="text-slate-600 hover:text-blue-700">API</a>
+                <a href="#pricing" class="text-slate-600 hover:text-blue-700">Pricing</a>
+                <a href="#setup" class="text-slate-600 hover:text-blue-700">Setup</a>
                 <a href="#integratie" class="text-slate-600 hover:text-blue-700">Integratie</a>
                 <a href="#contact" class="text-slate-600 hover:text-blue-700">Contact</a>
             </nav>
@@ -32,10 +34,10 @@
 
     <main>
         <section class="border-b border-slate-200 bg-white">
-            <div class="mx-auto grid max-w-[1600px] gap-12 px-6 py-16 md:grid-cols-2 md:py-20">
+            <div class="mx-auto grid max-w-7xl 2xl:max-w-[1600px] gap-12 px-6 md:px-8 2xl:px-6 py-16 md:grid-cols-2 md:py-20">
                 <div>
                     <p class="mb-3 text-sm font-medium text-blue-700">Betrouwbaar en Nederlandstalig</p>
-                    <h1 class="mb-5 text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
+                    <h1 class="mb-5 text-4xl font-semibold leading-tight tracking-tight md:text-5xl xl:text-6xl">
                         Dé #1 Nederlandse Bijbel API voor ontwikkelaars
                     </h1>
                     <p class="mb-8 text-lg leading-relaxed text-slate-600">
@@ -63,7 +65,7 @@
             </div>
         </section>
 
-        <section id="features" class="mx-auto max-w-[1600px] px-6 py-14">
+        <section id="features" class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
             <h2 class="mb-8 text-2xl font-semibold tracking-tight">Kernfunctionaliteiten</h2>
             <div class="grid gap-5 md:grid-cols-3">
                 <article class="rounded-xl border border-slate-200 bg-white p-5">
@@ -82,7 +84,7 @@
         </section>
 
         <section id="api" class="border-y border-slate-200 bg-white">
-            <div class="mx-auto max-w-[1600px] px-6 py-14">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
                 <h2 class="mb-3 text-2xl font-semibold tracking-tight">API-overzicht</h2>
                 <p class="mb-6 text-sm text-slate-600">Belangrijkste endpoints voor dagelijkse integratie.</p>
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
@@ -106,7 +108,68 @@
             </div>
         </section>
 
-        <section id="integratie" class="mx-auto max-w-[1600px] px-6 py-14">
+        <section id="pricing" class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
+            <h2 class="mb-3 text-2xl font-semibold tracking-tight">Pricing en limieten</h2>
+            <p class="mb-6 text-sm text-slate-600">
+                Start gratis en upgrade naar Pro wanneer je hogere limieten, Stripe self-service en productiezekerheid nodig hebt.
+            </p>
+            <div class="grid gap-5 md:grid-cols-2">
+                <article class="rounded-xl border border-slate-200 bg-white p-6">
+                    <p class="mb-1 text-sm font-semibold text-blue-700">Free Tier</p>
+                    <h3 class="mb-2 text-3xl font-semibold">€0</h3>
+                    <p class="mb-4 text-sm text-slate-600">Generous starter plan voor testen en lichte productie.</p>
+                    <ul class="space-y-2 text-sm text-slate-700">
+                        <li>- Daglimiet per IP (configureerbaar via `FREE_TIER_DAILY_LIMIT`)</li>
+                        <li>- Geen Stripe setup nodig</li>
+                        <li>- Toegang tot alle kern endpoints</li>
+                    </ul>
+                </article>
+                <article class="rounded-xl border border-slate-200 bg-white p-6">
+                    <p class="mb-1 text-sm font-semibold text-slate-900">Pro Tier (Stripe)</p>
+                    <h3 class="mb-2 text-3xl font-semibold">Jouw prijs</h3>
+                    <p class="mb-4 text-sm text-slate-600">Abonnement via Stripe Checkout + Customer Portal.</p>
+                    <ul class="space-y-2 text-sm text-slate-700">
+                        <li>- Hogere limieten voor serieuze workloads</li>
+                        <li>- `POST /billing/checkout-session`</li>
+                        <li>- `POST /billing/portal-session`</li>
+                        <li>- `GET /billing/status` en `GET /billing/plans`</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="setup" class="border-y border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
+                <h2 class="mb-3 text-2xl font-semibold tracking-tight">Render en Stripe setup</h2>
+                <p class="mb-6 text-sm text-slate-600">Volg deze stappen om `bijbelapi.com` en billing correct live te zetten.</p>
+                <div class="grid gap-5 md:grid-cols-2">
+                    <article class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                        <h3 class="mb-3 text-base font-semibold">Render + domein (Hostinger)</h3>
+                        <ol class="space-y-2 text-sm text-slate-700">
+                            <li>1. Deploy service met `render.yaml`.</li>
+                            <li>2. Voeg `bijbelapi.com` en `www.bijbelapi.com` toe in Render custom domains.</li>
+                            <li>3. Zet DNS records in Hostinger exact zoals Render aangeeft.</li>
+                            <li>4. Forceer redirect `www` -> apex (`bijbelapi.com`).</li>
+                            <li>5. Controleer SSL status op Render (Issued).</li>
+                        </ol>
+                    </article>
+                    <article class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                        <h3 class="mb-3 text-base font-semibold">Stripe environment variables</h3>
+                        <ul class="space-y-2 text-sm text-slate-700">
+                            <li>- `STRIPE_SECRET_KEY`</li>
+                            <li>- `STRIPE_WEBHOOK_SECRET`</li>
+                            <li>- `STRIPE_PRICE_ID_PRO_MONTHLY`</li>
+                            <li>- `STRIPE_PRICE_ID_PRO_YEARLY`</li>
+                            <li>- `APP_BASE_URL=https://bijbelapi.com`</li>
+                            <li>- `BILLING_ENFORCED=true`</li>
+                            <li>- `FREE_TIER_DAILY_LIMIT=5000` (voorbeeld)</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="integratie" class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
             <h2 class="mb-3 text-2xl font-semibold tracking-tight">Integratie en vertrouwen</h2>
             <p class="mb-6 max-w-3xl text-sm leading-relaxed text-slate-600">
                 Deze pagina is bewust strak en zakelijk opgezet. Voeg hier je eigen productshots, use-cases en referenties toe
@@ -126,7 +189,7 @@
         </section>
 
         <section id="contact" class="border-t border-slate-200 bg-white">
-            <div class="mx-auto max-w-[1600px] px-6 py-12">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-12">
                 <h2 class="mb-3 text-2xl font-semibold tracking-tight">Contact</h2>
                 <p class="mb-4 text-sm text-slate-600">Vragen, samenwerkingen of ondersteuning.</p>
                 <div class="flex flex-wrap gap-3 text-sm">
