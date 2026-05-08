@@ -1,0 +1,13 @@
+{
+  "name": "bijbelapi-site",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i ./site/tailwind.input.css -o ./site/tw.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, Response
 from fastapi import Security, Depends
 from fastapi.security import APIKeyHeader
 from sqlalchemy.orm import sessionmaker
@@ -11,7 +11,8 @@ import os
 import gzip
 import random
 import hashlib
-from datetime import date, datetime
+from datetime import date, datetime, timezone
+from xml.sax.saxutils import escape as xml_escape
 from typing import Optional
 from models import APIKey, Base, BillingSubscription, StripeWebhookEvent
 from dotenv import load_dotenv
@@ -75,6 +76,30 @@ STRIPE_PRICE_ID_PRO_MONTHLY = os.getenv("STRIPE_PRICE_ID_PRO_MONTHLY", "")
 STRIPE_PRICE_ID_PRO_YEARLY = os.getenv("STRIPE_PRICE_ID_PRO_YEARLY", "")
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8081")
 BILLING_ENFORCED = os.getenv("BILLING_ENFORCED", "false").lower() == "true"
+
+
+def public_base_url() -> str:
+    """Canonical origin for sitemap, robots, OG URLs (override with CANONICAL_PUBLIC_URL)."""
+    return (os.getenv("CANONICAL_PUBLIC_URL") or os.getenv("APP_BASE_URL") or "https://bijbelapi.com").rstrip("/")
+
+
+# (path, priority 0..1, changefreq) — keep tight; no infinite API query URLs
+_SITEMAP_ENTRIES = (
+    ("/", "1.0", "weekly"),
+    ("/docs", "0.85", "weekly"),
+    ("/privacy.html", "0.35", "yearly"),
+    ("/bron.html", "0.45", "yearly"),
+)
+
+
+def _inject_canonical_html(relative_path: str) -> HTMLResponse:
+    path = os.path.join(BASE_DIR, "site", relative_path)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Pagina niet gevonden")
+    with open(path, encoding="utf-8") as f:
+        html = f.read()
+    html = html.replace("{{CANONICAL_ORIGIN}}", public_base_url())
+    return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
 FREE_TIER_DAILY_LIMIT = int(os.getenv("FREE_TIER_DAILY_LIMIT", "5000"))
 stripe.api_key = STRIPE_SECRET_KEY
 FREE_TIER_USAGE = {}
@@ -265,16 +290,77 @@ def normalize_commentary_book(source_key: str, book_name: str):
             return name
     return None
 
+# --- SEO: crawlers expect these at site root (not only under /site/)
+@app.get("/robots.txt", response_class=PlainTextResponse)
+@app.head("/robots.txt", response_class=PlainTextResponse)
+def robots_txt():
+    base = public_base_url()
+    body = "\n".join(
+        [
+            "User-agent: *",
+            "Allow: /",
+            "",
+            f"Sitemap: {base}/sitemap.xml",
+            "",
+        ]
+    )
+    return PlainTextResponse(body, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/sitemap.xml")
+@app.head("/sitemap.xml")
+def sitemap_xml():
+    base = public_base_url()
+    lastmod = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for path, priority, changefreq in _SITEMAP_ENTRIES:
+        loc = f"{base}{path}"
+        lines.append("  <url>")
+        lines.append(f"    <loc>{xml_escape(loc)}</loc>")
+        lines.append(f"    <lastmod>{lastmod}</lastmod>")
+        lines.append(f"    <changefreq>{changefreq}</changefreq>")
+        lines.append(f"    <priority>{priority}</priority>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    xml_body = "\n".join(lines)
+    return Response(content=xml_body, media_type="application/xml; charset=utf-8")
+
+
+@app.get("/humans.txt", response_class=PlainTextResponse)
+@app.head("/humans.txt", response_class=PlainTextResponse)
+def humans_txt():
+    path = os.path.join(BASE_DIR, "site", "humans.txt")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="humans.txt niet gevonden")
+    with open(path, encoding="utf-8") as f:
+        return PlainTextResponse(f.read(), media_type="text/plain; charset=utf-8")
+
+
 # --- Serve index.html on /
-@app.get("/", response_class=FileResponse)
+# HEAD is required for Cloudflare and many probes; GET-only returns 405.
+@app.get("/", response_class=HTMLResponse)
+@app.head("/", response_class=HTMLResponse)
 def serve_index():
-    index_path = os.path.join(BASE_DIR, "site", "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path, media_type="text/html")
-    raise HTTPException(status_code=404, detail="index.html niet gevonden")
+    return _inject_canonical_html("index.html")
+
+
+@app.get("/privacy.html", response_class=HTMLResponse)
+@app.head("/privacy.html", response_class=HTMLResponse)
+def privacy_page():
+    return _inject_canonical_html("privacy.html")
+
+
+@app.get("/bron.html", response_class=HTMLResponse)
+@app.head("/bron.html", response_class=HTMLResponse)
+def bron_page():
+    return _inject_canonical_html("bron.html")
 
 
 @app.get("/health")
+@app.head("/health")
 def health():
     return {"status": "ok"}
 

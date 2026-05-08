@@ -3,27 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BijbelAPI - Nederlandse Bijbel API</title>
-    <meta name="description" content="Professionele Nederlandse Bijbel API voor betrouwbare en snelle integraties.">
+    <title>BijbelAPI | Gratis Nederlandse Bijbel API (JSON) voor ontwikkelaars</title>
+    <meta name="description" content="BijbelAPI: snelle Nederlandse Bijbel API met JSON, dagtekst, zoeken en parsing. Gratis tier voor testen; Pro via Stripe. OpenAPI op /docs.">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{CANONICAL_ORIGIN}}/">
     <link rel="icon" href="/public/favicon/favicon.ico" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/site/tw.css">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BijbelAPI">
+    <meta property="og:title" content="BijbelAPI | Nederlandse Bijbel API (JSON)">
+    <meta property="og:description" content="Gratis tier en Pro-abonnement. Nederlandse Bijbelteksten, parsing, commentaar en OpenAPI-documentatie.">
+    <meta property="og:url" content="{{CANONICAL_ORIGIN}}/">
+    <meta property="og:locale" content="nl_NL">
+    <meta property="og:image" content="{{CANONICAL_ORIGIN}}/public/images/logo.svg">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="BijbelAPI | Nederlandse Bijbel API">
+    <meta name="twitter:description" content="Gratis Nederlandse Bijbel API met JSON en documentatie op /docs.">
+
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{CANONICAL_ORIGIN}}/#website",
+      "name": "BijbelAPI",
+      "url": "{{CANONICAL_ORIGIN}}/",
+      "description": "Nederlandse Bijbel API met JSON, gratis tier en Pro via Stripe.",
+      "inLanguage": "nl-NL",
+      "publisher": { "@id": "{{CANONICAL_ORIGIN}}/#organization" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "{{CANONICAL_ORIGIN}}/#organization",
+      "name": "BijbelAPI",
+      "url": "{{CANONICAL_ORIGIN}}/",
+      "sameAs": ["https://github.com/AlexLamper/BijbelAPI"]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "BijbelAPI",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "url": "{{CANONICAL_ORIGIN}}/",
+      "description": "REST API voor Nederlandse Bijbelteksten, passages, dagtekst, zoeken, reference parsing en commentaar.",
+      "documentation": "{{CANONICAL_ORIGIN}}/docs",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free tier",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "description": "Gratis gebruik met configureerbare daglimiet per IP wanneer billing actief is."
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "priceCurrency": "EUR",
+          "description": "Betaald abonnement via Stripe Checkout en Customer Portal."
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Wat is BijbelAPI?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "BijbelAPI is een Nederlandstalige REST API waarmee ontwikkelaars Bijbelteksten in JSON kunnen opvragen, inclusief onder andere verzen, passages, dagtekst en zoeken. Er is OpenAPI-documentatie op /docs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is er een gratis Bijbel API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Er is een gratis tier voor testen en licht gebruik. Bij actieve billing kan een daglimiet per IP gelden; met een Pro-abonnement en API-sleutel krijg je hogere limieten via Stripe."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Welke Nederlandse vertalingen worden ondersteund?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "De codebase ondersteunt meerdere coderingen zoals nbg1951, bb, sv en nld1939. Welke bestanden daadwerkelijk op de server staan, zie je via GET /api/versions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Hoe vraag ik een specifiek vers op?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Gebruik GET /api/verse met queryparameters book, chapter en verse. Optioneel: parameter version voor een specifieke vertaling. Zie /docs voor alle velden."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Waar vind ik de technische documentatie?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Op het pad /docs staat Swagger UI met alle endpoints. ReDoc staat op /redoc."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Hoe werkt Pro en Stripe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Pro gebruikt Stripe Checkout en het Customer Portal. Endpoints zoals /billing/checkout-session en /billing/portal-session staan in de OpenAPI-specificatie."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Mag ik de API commercieel gebruiken?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dat hangt af van je abonnement en van de licenties op de onderliggende Bijbelteksten. Raadpleeg de pagina Bronnen en licenties en je eigen juridische advies."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Hoe neem ik contact op?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Via het e-mailadres op deze pagina of via de GitHub-repository AlexLamper/BijbelAPI."
+          }
+        }
+      ]
+    }
+  ]
+}
+    </script>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased">
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div class="mx-auto flex max-w-7xl 2xl:max-w-[1600px] items-center justify-between px-6 md:px-8 2xl:px-6 py-4">
             <a href="/" class="flex items-center gap-3">
-                <img src="/public/images/logo.svg" alt="BijbelAPI logo" class="h-10 w-10 rounded-lg">
+                <img src="/public/images/logo.svg" alt="BijbelAPI — Nederlandse Bijbel API voor ontwikkelaars" class="h-10 w-10 rounded-lg" width="40" height="40" fetchpriority="high">
                 <div>
                     <p class="text-base font-semibold tracking-tight">BijbelAPI</p>
                     <p class="text-xs text-slate-500">Nederlandse Bijbel API</p>
                 </div>
             </a>
-            <nav class="hidden items-center gap-6 text-sm md:flex">
+            <nav class="hidden items-center gap-6 text-sm md:flex" aria-label="Hoofdnavigatie">
                 <a href="#features" class="text-slate-600 hover:text-blue-700">Functies</a>
                 <a href="#api" class="text-slate-600 hover:text-blue-700">API</a>
                 <a href="#pricing" class="text-slate-600 hover:text-blue-700">Pricing</a>
                 <a href="#setup" class="text-slate-600 hover:text-blue-700">Setup</a>
                 <a href="#integratie" class="text-slate-600 hover:text-blue-700">Integratie</a>
+                <a href="#veelgestelde-vragen" class="text-slate-600 hover:text-blue-700">FAQ</a>
+                <a href="/bron.html" class="text-slate-600 hover:text-blue-700">Bronnen</a>
                 <a href="#contact" class="text-slate-600 hover:text-blue-700">Contact</a>
             </nav>
             <a href="/docs" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
@@ -38,11 +172,12 @@
                 <div>
                     <p class="mb-3 text-sm font-medium text-blue-700">Betrouwbaar en Nederlandstalig</p>
                     <h1 class="mb-5 text-4xl font-semibold leading-tight tracking-tight md:text-5xl xl:text-6xl">
-                        Dé #1 Nederlandse Bijbel API voor ontwikkelaars
+                        Dé Nederlandse Bijbel API met JSON, gratis tier en Pro via Stripe
                     </h1>
                     <p class="mb-8 text-lg leading-relaxed text-slate-600">
-                        BijbelAPI biedt een consistente en stabiele basis voor toepassingen die Nederlandse
-                        Bijbelteksten, parsing en commentaar nodig hebben.
+                        Zoek je een <strong class="font-medium text-slate-800">gratis bijbel api</strong> of een
+                        <strong class="font-medium text-slate-800">nederlandse bijbel api</strong> voor je app, studieproject of kerkwebsite?
+                        BijbelAPI levert gestructureerde endpoints voor verzen, passages, dagtekst, zoeken en intelligente reference parsing — met duidelijke OpenAPI-documentatie.
                     </p>
                     <div class="flex flex-wrap gap-3">
                         <a href="/docs" class="rounded-lg bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-700">
@@ -56,10 +191,10 @@
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
                     <h2 class="mb-4 text-base font-semibold">Snel starten</h2>
                     <ul class="space-y-3 text-sm text-slate-700">
-                        <li><span class="font-medium">Home:</span> <code>/</code></li>
-                        <li><span class="font-medium">Swagger:</span> <code>/docs</code></li>
-                        <li><span class="font-medium">ReDoc:</span> <code>/redoc</code></li>
-                        <li><span class="font-medium">Vers endpoint:</span> <code>/api/verse?book=Genesis&chapter=1&verse=1</code></li>
+                        <li><span class="font-medium">Home:</span> <code class="rounded bg-white px-1">/</code></li>
+                        <li><span class="font-medium">Swagger:</span> <code class="rounded bg-white px-1">/docs</code></li>
+                        <li><span class="font-medium">ReDoc:</span> <code class="rounded bg-white px-1">/redoc</code></li>
+                        <li><span class="font-medium">Vers endpoint:</span> <code class="rounded bg-white px-1">/api/verse?book=Genesis&amp;chapter=1&amp;verse=1</code></li>
                     </ul>
                 </div>
             </div>
@@ -70,15 +205,15 @@
             <div class="grid gap-5 md:grid-cols-3">
                 <article class="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 class="mb-2 text-base font-semibold">Meerdere Nederlandse vertalingen</h3>
-                    <p class="text-sm leading-relaxed text-slate-600">Uniforme JSON-structuur voor vertalingen en metadata.</p>
+                    <p class="text-sm leading-relaxed text-slate-600">Uniforme JSON-structuur voor vertalingen en metadata. Geschikt als je een flexibele <span class="font-medium text-slate-700">bijbel api</span> nodig hebt.</p>
                 </article>
                 <article class="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 class="mb-2 text-base font-semibold">Reference parsing</h3>
-                    <p class="text-sm leading-relaxed text-slate-600">Ondersteuning voor complexe verwijzingen en vers-ranges.</p>
+                    <p class="text-sm leading-relaxed text-slate-600">Ondersteuning voor complexe verwijzingen en vers-ranges via dedicated parse-endpoints.</p>
                 </article>
                 <article class="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 class="mb-2 text-base font-semibold">Commentaar endpoints</h3>
-                    <p class="text-sm leading-relaxed text-slate-600">Nederlandse commentaarbron direct opvraagbaar via API.</p>
+                    <p class="text-sm leading-relaxed text-slate-600">Nederlandstalige commentaarbronnen opvraagbaar per hoofdstuk of vers, naast de kale Bijbeltekst.</p>
                 </article>
             </div>
         </section>
@@ -86,7 +221,7 @@
         <section id="api" class="border-y border-slate-200 bg-white">
             <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
                 <h2 class="mb-3 text-2xl font-semibold tracking-tight">API-overzicht</h2>
-                <p class="mb-6 text-sm text-slate-600">Belangrijkste endpoints voor dagelijkse integratie.</p>
+                <p class="mb-6 text-sm text-slate-600">Belangrijkste endpoints voor dagelijkse integratie. Volledige lijst op <a href="/docs" class="font-medium text-blue-700 hover:underline">/docs</a>.</p>
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
                     <table class="min-w-full text-left text-sm">
                         <thead class="bg-slate-100 text-slate-700">
@@ -100,7 +235,7 @@
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/daytext</code></td><td class="px-4 py-3">Dagtekst op basis van datum of seed</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/verse</code></td><td class="px-4 py-3">Specifiek vers opvragen</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/passage</code></td><td class="px-4 py-3">Bereik van verzen opvragen</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/commentary</code></td><td class="px-4 py-3">Nederlands commentaar op hoofdstuk/vers</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/commentary</code></td><td class="px-4 py-3">Nederlands commentaar op hoofdstuk of vers</td></tr>
                             <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/api/parse/reference</code></td><td class="px-4 py-3">Bijbelverwijzing parseren</td></tr>
                         </tbody>
                     </table>
@@ -117,22 +252,22 @@
                 <article class="rounded-xl border border-slate-200 bg-white p-6">
                     <p class="mb-1 text-sm font-semibold text-blue-700">Free Tier</p>
                     <h3 class="mb-2 text-3xl font-semibold">€0</h3>
-                    <p class="mb-4 text-sm text-slate-600">Generous starter plan voor testen en lichte productie.</p>
+                    <p class="mb-4 text-sm text-slate-600">Gratis bijbel api tier voor testen en lichte productie.</p>
                     <ul class="space-y-2 text-sm text-slate-700">
-                        <li>- Daglimiet per IP (configureerbaar via `FREE_TIER_DAILY_LIMIT`)</li>
-                        <li>- Geen Stripe setup nodig</li>
-                        <li>- Toegang tot alle kern endpoints</li>
+                        <li>Daglimiet per IP wanneer billing actief is (configureerbaar)</li>
+                        <li>Geen Stripe-account nodig om te beginnen</li>
+                        <li>Toegang tot kern-endpoints</li>
                     </ul>
                 </article>
                 <article class="rounded-xl border border-slate-200 bg-white p-6">
                     <p class="mb-1 text-sm font-semibold text-slate-900">Pro Tier (Stripe)</p>
-                    <h3 class="mb-2 text-3xl font-semibold">Jouw prijs</h3>
-                    <p class="mb-4 text-sm text-slate-600">Abonnement via Stripe Checkout + Customer Portal.</p>
+                    <h3 class="mb-2 text-3xl font-semibold">Pro</h3>
+                    <p class="mb-4 text-sm text-slate-600">Abonnement via Stripe Checkout en Customer Portal.</p>
                     <ul class="space-y-2 text-sm text-slate-700">
-                        <li>- Hogere limieten voor serieuze workloads</li>
-                        <li>- `POST /billing/checkout-session`</li>
-                        <li>- `POST /billing/portal-session`</li>
-                        <li>- `GET /billing/status` en `GET /billing/plans`</li>
+                        <li>Hogere limieten voor productie</li>
+                        <li><code class="rounded bg-slate-100 px-1">POST /billing/checkout-session</code></li>
+                        <li><code class="rounded bg-slate-100 px-1">POST /billing/portal-session</code></li>
+                        <li><code class="rounded bg-slate-100 px-1">GET /billing/status</code> en <code class="rounded bg-slate-100 px-1">GET /billing/plans</code></li>
                     </ul>
                 </article>
             </div>
@@ -141,28 +276,26 @@
         <section id="setup" class="border-y border-slate-200 bg-white">
             <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
                 <h2 class="mb-3 text-2xl font-semibold tracking-tight">Render en Stripe setup</h2>
-                <p class="mb-6 text-sm text-slate-600">Volg deze stappen om `bijbelapi.com` en billing correct live te zetten.</p>
+                <p class="mb-6 text-sm text-slate-600">Volg deze stappen om je domein en billing correct live te zetten.</p>
                 <div class="grid gap-5 md:grid-cols-2">
                     <article class="rounded-xl border border-slate-200 bg-slate-50 p-5">
-                        <h3 class="mb-3 text-base font-semibold">Render + domein (Hostinger)</h3>
-                        <ol class="space-y-2 text-sm text-slate-700">
-                            <li>1. Deploy service met `render.yaml`.</li>
-                            <li>2. Voeg `bijbelapi.com` en `www.bijbelapi.com` toe in Render custom domains.</li>
-                            <li>3. Zet DNS records in Hostinger exact zoals Render aangeeft.</li>
-                            <li>4. Forceer redirect `www` -> apex (`bijbelapi.com`).</li>
-                            <li>5. Controleer SSL status op Render (Issued).</li>
+                        <h3 class="mb-3 text-base font-semibold">Render en DNS</h3>
+                        <ol class="list-decimal space-y-2 pl-5 text-sm text-slate-700">
+                            <li>Deploy de web service (bijvoorbeeld met render.yaml).</li>
+                            <li>Voeg je apex- en www-domein toe als custom domain in Render.</li>
+                            <li>Zet DNS-records bij je registrar exact zoals Render aangeeft.</li>
+                            <li>Forceer één canonieke host (bijvoorbeeld apex) met een 301 van www naar apex.</li>
+                            <li>Controleer dat SSL actief is.</li>
                         </ol>
                     </article>
                     <article class="rounded-xl border border-slate-200 bg-slate-50 p-5">
                         <h3 class="mb-3 text-base font-semibold">Stripe environment variables</h3>
                         <ul class="space-y-2 text-sm text-slate-700">
-                            <li>- `STRIPE_SECRET_KEY`</li>
-                            <li>- `STRIPE_WEBHOOK_SECRET`</li>
-                            <li>- `STRIPE_PRICE_ID_PRO_MONTHLY`</li>
-                            <li>- `STRIPE_PRICE_ID_PRO_YEARLY`</li>
-                            <li>- `APP_BASE_URL=https://bijbelapi.com`</li>
-                            <li>- `BILLING_ENFORCED=true`</li>
-                            <li>- `FREE_TIER_DAILY_LIMIT=5000` (voorbeeld)</li>
+                            <li><code class="rounded bg-white px-1">STRIPE_SECRET_KEY</code></li>
+                            <li><code class="rounded bg-white px-1">STRIPE_WEBHOOK_SECRET</code></li>
+                            <li><code class="rounded bg-white px-1">STRIPE_PRICE_ID_PRO_MONTHLY</code> / yearly</li>
+                            <li><code class="rounded bg-white px-1">APP_BASE_URL</code> (publieke basis-URL)</li>
+                            <li><code class="rounded bg-white px-1">BILLING_ENFORCED</code> en <code class="rounded bg-white px-1">FREE_TIER_DAILY_LIMIT</code></li>
                         </ul>
                     </article>
                 </div>
@@ -171,19 +304,62 @@
 
         <section id="integratie" class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
             <h2 class="mb-3 text-2xl font-semibold tracking-tight">Integratie en vertrouwen</h2>
-            <p class="mb-6 max-w-3xl text-sm leading-relaxed text-slate-600">
-                Deze pagina is bewust strak en zakelijk opgezet. Voeg hier je eigen productshots, use-cases en referenties toe
-                om de professionaliteit verder te versterken.
+            <p class="mb-8 max-w-3xl text-sm leading-relaxed text-slate-600">
+                BijbelAPI is bedoeld voor serieuze integraties: voorspelbare JSON-responses, OpenAPI-specificatie en duidelijke foutcodes.
+                Gebruik HTTPS in productie, bewaar API-sleutels veilig en cache waar het mag volgens de licentie van de bronteksten.
             </p>
             <div class="grid gap-5 md:grid-cols-3">
-                <div class="grid min-h-48 place-items-center rounded-xl border-2 border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500">
-                    Plaats hier afbeelding: product interface
-                </div>
-                <div class="grid min-h-48 place-items-center rounded-xl border-2 border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500">
-                    Plaats hier afbeelding: technische architectuur
-                </div>
-                <div class="grid min-h-48 place-items-center rounded-xl border-2 border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500">
-                    Plaats hier afbeelding: praktijkvoorbeeld
+                <article class="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 class="mb-2 text-base font-semibold">JSON en versiebeheer</h3>
+                    <p class="text-sm leading-relaxed text-slate-600">Versioneer je client tegen breaking changes en test tegen <code class="rounded bg-slate-100 px-1">/api/versions</code> zodat je weet welke vertalingen op de server staan.</p>
+                </article>
+                <article class="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 class="mb-2 text-base font-semibold">Documentatie eerst</h3>
+                    <p class="text-sm leading-relaxed text-slate-600">Start op <a href="/docs" class="font-medium text-blue-700 hover:underline">/docs</a> voor request- en responsevoorbeelden; dat verkleint fouten en versnelt onboarding.</p>
+                </article>
+                <article class="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 class="mb-2 text-base font-semibold">Licenties en compliance</h3>
+                    <p class="text-sm leading-relaxed text-slate-600">Lees <a href="/bron.html" class="font-medium text-blue-700 hover:underline">Bronnen en licenties</a> en <a href="/privacy.html" class="font-medium text-blue-700 hover:underline">Privacy</a> voordat je productieverkeer verstuurt.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="veelgestelde-vragen" class="border-y border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
+                <h2 class="mb-8 text-2xl font-semibold tracking-tight">Veelgestelde vragen</h2>
+                <div class="grid max-w-3xl gap-8">
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Wat is BijbelAPI?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">BijbelAPI is een Nederlandstalige REST API waarmee ontwikkelaars Bijbelteksten in JSON kunnen opvragen, inclusief onder andere verzen, passages, dagtekst en zoeken. Er is OpenAPI-documentatie op /docs.</p>
+                    </article>
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Is er een gratis Bijbel API?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">Ja. Er is een gratis tier voor testen en licht gebruik. Bij actieve billing kan een daglimiet per IP gelden; met een Pro-abonnement en API-sleutel krijg je hogere limieten via Stripe.</p>
+                    </article>
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Welke Nederlandse vertalingen worden ondersteund?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">De codebase ondersteunt meerdere coderingen zoals nbg1951, bb, sv en nld1939. Welke bestanden daadwerkelijk op de server staan, zie je via GET /api/versions.</p>
+                    </article>
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Hoe vraag ik een specifiek vers op?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">Gebruik GET /api/verse met queryparameters book, chapter en verse. Optioneel: parameter version voor een specifieke vertaling. Zie /docs voor alle velden.</p>
+                    </article>
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Waar vind ik de technische documentatie?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">Op het pad /docs staat Swagger UI met alle endpoints. ReDoc staat op /redoc.</p>
+                    </article>
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Hoe werkt Pro en Stripe?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">Pro gebruikt Stripe Checkout en het Customer Portal. Endpoints zoals /billing/checkout-session en /billing/portal-session staan in de OpenAPI-specificatie.</p>
+                    </article>
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Mag ik de API commercieel gebruiken?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">Dat hangt af van je abonnement en van de licenties op de onderliggende Bijbelteksten. Raadpleeg de pagina Bronnen en licenties en je eigen juridische advies.</p>
+                    </article>
+                    <article>
+                        <h3 class="mb-2 text-base font-semibold text-slate-900">Hoe neem ik contact op?</h3>
+                        <p class="text-sm leading-relaxed text-slate-600">Via het e-mailadres in de contactsectie of via de GitHub-repository AlexLamper/BijbelAPI.</p>
+                    </article>
                 </div>
             </div>
         </section>
@@ -200,10 +376,19 @@
         </section>
     </main>
 
-    <footer class="bg-white py-6 text-center text-xs text-slate-500">
-        &copy; 2026 BijbelAPI
+    <footer class="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500">
+        <p class="mb-2">&copy; 2026 BijbelAPI</p>
+        <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1" aria-label="Voetnavigatie">
+            <a href="/bron.html" class="hover:text-slate-800">Bronnen en licenties</a>
+            <span aria-hidden="true">·</span>
+            <a href="/privacy.html" class="hover:text-slate-800">Privacy</a>
+            <span aria-hidden="true">·</span>
+            <a href="/humans.txt" class="hover:text-slate-800">humans.txt</a>
+            <span aria-hidden="true">·</span>
+            <a href="/sitemap.xml" class="hover:text-slate-800">Sitemap</a>
+        </nav>
     </footer>
 
-    <script src="/site/script.js"></script>
+    <script src="/site/script.js" defer></script>
 </body>
 </html>

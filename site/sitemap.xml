@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Statische referentie; productie serveert dynamische /sitemap.xml met lastmod (main.py). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://bijbelapi.com/</loc>
-    <changefreq>never</changefreq>
-    <priority>0.5</priority>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://bijbelapi.com/docs</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://bijbelapi.com/privacy.html</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.35</priority>
+  </url>
+  <url>
+    <loc>https://bijbelapi.com/bron.html</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.45</priority>
   </url>
 </urlset>

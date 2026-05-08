@@ -24,5 +24,8 @@ run.txt
 venv/
 .venv/
 
+# Node (Tailwind build for site CSS)
+node_modules/
+
 # Local source data (not for git)
 non-transformed-data/

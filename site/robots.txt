@@ -1,6 +1,5 @@
+# Statische kopie ter referentie in git. Productie serveert dynamische /robots.txt (zie main.py).
 User-agent: *
-Disallow: /v1/
-Disallow: /v2/
 Allow: /
 
 Sitemap: https://bijbelapi.com/sitemap.xml
