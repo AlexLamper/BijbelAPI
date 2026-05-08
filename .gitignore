@@ -18,9 +18,11 @@ Thumbs.db
 # Logs
 .todo.txt
 todo.txt
+run.txt
 
 # Virtual environment
 venv/
+.venv/
 
-# Scripts
-scripts/
+# Local source data (not for git)
+non-transformed-data/

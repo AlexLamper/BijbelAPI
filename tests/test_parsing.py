@@ -43,7 +43,7 @@ class TestReferenceParser:
         """Set up test fixtures."""
         # Mock the parser with dummy data to avoid actual API calls during testing
         mock_versions = {
-            "asv": {
+            "nbg1951": {
                 "data": {
                     "Jeremiah": {
                         "18": {
@@ -63,11 +63,11 @@ class TestReferenceParser:
                 }
             }
         }
-        self.parser = ReferenceParser(all_versions=mock_versions, version="asv")
+        self.parser = ReferenceParser(all_versions=mock_versions, version="nbg1951")
     
     def test_parse_simple_reference(self):
         """Test parsing simple references like 'Jeremiah 18:1-11'."""
-        result = self.parser.parse("Jeremiah 18:1-11", "asv")
+        result = self.parser.parse("Jeremiah 18:1-11", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Jeremiah 18:1-11"
@@ -78,7 +78,7 @@ class TestReferenceParser:
     
     def test_parse_single_verse(self):
         """Test parsing single verses like 'Jeremiah 18:5'."""
-        result = self.parser.parse("Jeremiah 18:5", "asv")
+        result = self.parser.parse("Jeremiah 18:5", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Jeremiah 18:5"
@@ -104,7 +104,7 @@ class TestReferenceParser:
             }
         }
         
-        result = self.parser.parse("Psalm 139:1-5, 12-17", "asv")
+        result = self.parser.parse("Psalm 139:1-5, 12-17", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Psalm 139:1-5, 12-17"
@@ -137,7 +137,7 @@ class TestReferenceParser:
         
         self.parser._get_chapter_data = mock_get_chapter_data
         
-        result = self.parser.parse("John 3:16-4:1", "asv")
+        result = self.parser.parse("John 3:16-4:1", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "John 3:16-4:1"
@@ -172,7 +172,7 @@ class TestReferenceParser:
             }
         }
         
-        result = self.parser.parse("Habakkuk 3:2-19a", "asv")
+        result = self.parser.parse("Habakkuk 3:2-19a", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Habakkuk 3:2-19a"
@@ -181,7 +181,7 @@ class TestReferenceParser:
     
     def test_parse_end_reference(self):
         """Test parsing references with 'end' like 'Jeremiah 18:5-end'."""
-        result = self.parser.parse("Jeremiah 18:5-end", "asv")
+        result = self.parser.parse("Jeremiah 18:5-end", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Jeremiah 18:5-end"
@@ -190,22 +190,22 @@ class TestReferenceParser:
     
     def test_parse_invalid_reference(self):
         """Test parsing invalid references."""
-        result = self.parser.parse("", "asv")
+        result = self.parser.parse("", "nbg1951")
         
         assert result["parsed"] == False
-        assert "Empty reference" in result["error"]
-        assert result["formatted_text"] == "[Reading: ]"
+        assert "Lege verwijzing" in result["error"]
+        assert result["formatted_text"] == "[Lezing: ]"
     
     def test_parse_nonexistent_book(self):
         """Test parsing references with non-existent books."""
         # Mock empty response for non-existent book
         self.parser._get_chapter_data = lambda book, chapter, version: None
         
-        result = self.parser.parse("Nonexistent 1:1", "asv")
+        result = self.parser.parse("Nonexistent 1:1", "nbg1951")
         
         assert result["parsed"] == False
-        assert "Could not fetch chapter data" in result["error"]
-        assert result["formatted_text"] == "[Reading: Nonexistent 1:1]"
+        assert "Kon hoofdstukgegevens niet ophalen" in result["error"]
+        assert result["formatted_text"] == "[Lezing: Nonexistent 1:1]"
     
     def test_parse_chapter_only_reference(self):
         """Test parsing chapter-only references like 'Philemon 1-21'."""
@@ -236,7 +236,7 @@ class TestReferenceParser:
             }
         }
         
-        result = self.parser.parse("Philemon 1-21", "asv")
+        result = self.parser.parse("Philemon 1-21", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Philemon 1-21"
@@ -262,7 +262,7 @@ class TestReferenceParser:
             }
         }
         
-        result = self.parser.parse("Psalm 146", "asv")
+        result = self.parser.parse("Psalm 146", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Psalm 146"
@@ -295,7 +295,7 @@ class TestReferenceParser:
             }
         }
         
-        result = self.parser.parse("Luke 1:39-45[46-55]", "asv")
+        result = self.parser.parse("Luke 1:39-45[46-55]", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Luke 1:39-45[46-55]"
@@ -325,7 +325,7 @@ class TestReferenceParser:
             }
         }
         
-        result = self.parser.parse("Psalm 104:26-36,37", "asv")
+        result = self.parser.parse("Psalm 104:26-36,37", "nbg1951")
         
         assert result["parsed"] == True
         assert result["reference"] == "Psalm 104:26-36,37"

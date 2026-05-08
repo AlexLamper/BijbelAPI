@@ -3,4 +3,4 @@ Disallow: /v1/
 Disallow: /v2/
 Allow: /
 
-Sitemap: https://scriptura-api.com/sitemap.xml
+Sitemap: https://bijbelapi.com/sitemap.xml

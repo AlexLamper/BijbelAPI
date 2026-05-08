@@ -15,7 +15,7 @@ from .book_normalizer import BookNormalizer
 class ReferenceParser:
     """Parses complex Bible references and fetches formatted text."""
     
-    def __init__(self, all_versions: dict, version: str = "asv"):
+    def __init__(self, all_versions: dict, version: str = "nbg1951"):
         """
         Initialize the reference parser.
         
@@ -42,8 +42,8 @@ class ReferenceParser:
             return {
                 "reference": reference,
                 "parsed": False,
-                "error": "Empty reference",
-                "formatted_text": f"[Reading: {reference}]"
+                "error": "Lege verwijzing",
+                "formatted_text": f"[Lezing: {reference}]"
             }
         
         version = version or self.version
@@ -63,7 +63,7 @@ class ReferenceParser:
                 "reference": reference,
                 "parsed": False,
                 "error": str(e),
-                "formatted_text": f"[Reading: {reference}]"
+                "formatted_text": f"[Lezing: {reference}]"
             }
     
     def _clean_reference(self, reference: str) -> str:
@@ -97,7 +97,7 @@ class ReferenceParser:
             # Parse book, chapter, verse range
             book, chapter, verse_range = self._parse_simple_reference(reference)
             if not book or not chapter:
-                raise ValueError("Could not parse reference")
+                raise ValueError("Kon verwijzing niet parseren")
             
             # Normalize book name
             book = self.book_normalizer.normalize(book)
@@ -105,12 +105,12 @@ class ReferenceParser:
             # Get chapter data
             chapter_data = self._get_chapter_data(book, chapter, version)
             if not chapter_data:
-                raise ValueError("Could not fetch chapter data")
+                raise ValueError("Kon hoofdstukgegevens niet ophalen")
             
             # Extract verses
             verses = self._extract_verses_from_chapter(chapter_data, verse_range)
             if not verses:
-                raise ValueError("No verses found")
+                raise ValueError("Geen verzen gevonden")
             
             # Return raw verses (formatting will be done by liturgical_display)
             formatted_text = self._format_verses_simple(verses)
@@ -129,7 +129,7 @@ class ReferenceParser:
                 "reference": reference,
                 "parsed": False,
                 "error": str(e),
-                "formatted_text": f"[Reading: {reference}]"
+                "formatted_text": f"[Lezing: {reference}]"
             }
     
     def _handle_complex_reference(self, reference: str, version: str) -> Dict[str, Any]:
@@ -160,7 +160,7 @@ class ReferenceParser:
                 "reference": reference,
                 "parsed": False,
                 "error": str(e),
-                "formatted_text": f"[Reading: {reference}]"
+                "formatted_text": f"[Lezing: {reference}]"
             }
     
     def _handle_discontinuous_range(self, reference: str, version: str) -> Dict[str, Any]:
@@ -173,7 +173,7 @@ class ReferenceParser:
             # Parse the first part to get book and chapter
             first_part = parts[0].strip()
             if ':' not in first_part:
-                raise ValueError("Invalid reference format")
+                raise ValueError("Ongeldig verwijzingsformaat")
             
             book_chapter, verse_part = first_part.split(':', 1)
             book_chapter_parts = book_chapter.rsplit(' ', 1)
@@ -223,7 +223,7 @@ class ReferenceParser:
                 all_verses.extend(verses)
             
             if not all_verses:
-                raise ValueError("No verses found")
+                raise ValueError("Geen verzen gevonden")
             
             # Format text
             formatted_text = self._format_verses_simple(all_verses)
@@ -242,7 +242,7 @@ class ReferenceParser:
                 "reference": reference,
                 "parsed": False,
                 "error": str(e),
-                "formatted_text": f"[Reading: {reference}]"
+                "formatted_text": f"[Lezing: {reference}]"
             }
     
     def _handle_cross_chapter_reference(self, reference: str, version: str) -> Dict[str, Any]:
@@ -253,7 +253,7 @@ class ReferenceParser:
             match = re.match(pattern, reference.strip())
             
             if not match:
-                raise ValueError("Invalid cross-chapter reference format")
+                raise ValueError("Ongeldig verwijzingsformaat over hoofdstukken")
             
             book = match.group(1).strip()
             start_chapter = int(match.group(2))
@@ -292,7 +292,7 @@ class ReferenceParser:
                     all_verses.extend(verses)
             
             if not all_verses:
-                raise ValueError("No verses found")
+                raise ValueError("Geen verzen gevonden")
             
             # Format text
             formatted_text = self._format_verses_simple(all_verses)
@@ -312,7 +312,7 @@ class ReferenceParser:
                 "reference": reference,
                 "parsed": False,
                 "error": str(e),
-                "formatted_text": f"[Reading: {reference}]"
+                "formatted_text": f"[Lezing: {reference}]"
             }
     
     
@@ -353,14 +353,14 @@ class ReferenceParser:
                 
                 return main_result
             else:
-                raise ValueError("Invalid optional verse format")
+                raise ValueError("Ongeldig optioneel-verzenformaat")
                 
         except Exception as e:
             return {
                 "reference": reference,
                 "parsed": False,
                 "error": str(e),
-                "formatted_text": f"[Reading: {reference}]"
+                "formatted_text": f"[Lezing: {reference}]"
             }
     
     def _handle_complex_syntax(self, reference: str, version: str) -> Dict[str, Any]:
@@ -379,7 +379,7 @@ class ReferenceParser:
         
         parts = reference.split(':')
         if len(parts) != 2:
-            raise ValueError("Invalid reference format")
+            raise ValueError("Ongeldig verwijzingsformaat")
         
         book_chapter = parts[0].strip()
         verse_range = parts[1].strip()
@@ -400,7 +400,7 @@ class ReferenceParser:
         # Split by space to get book and chapter info
         parts = reference.split()
         if len(parts) < 2:
-            raise ValueError("Invalid reference format")
+            raise ValueError("Ongeldig verwijzingsformaat")
         
         book = parts[0].strip()
         chapter_info = parts[1].strip()
@@ -417,12 +417,8 @@ class ReferenceParser:
     def _get_chapter_data(self, book: str, chapter: str, version: str) -> Optional[Dict[str, Any]]:
         """Get chapter data from loaded versions."""
         try:
-            # Get version key (same logic as main.py)
-            version_key = None
-            for key, v in self.all_versions.items():
-                if key.lower() == version.lower():
-                    version_key = key
-                    break
+            # Get version key (same alias logic as main.py)
+            version_key = self._resolve_version_key(version)
             
             if not version_key:
                 return None
@@ -448,6 +444,20 @@ class ReferenceParser:
         except Exception as e:
             print(f"Error getting chapter data: {e}")
             return None
+
+    def _resolve_version_key(self, version: str) -> Optional[str]:
+        """Resolve translation by key and metadata aliases."""
+        normalized = version.lower()
+        for key, data in self.all_versions.items():
+            meta = data.get("meta", {})
+            if (
+                key.lower() == normalized
+                or meta.get("shortname", "").lower() == normalized
+                or meta.get("module", "").lower() == normalized
+                or meta.get("name", "").lower() == normalized
+            ):
+                return key
+        return None
     
     def _normalize_book_name_for_version(self, version_key: str, book_name: str) -> Optional[str]:
         """Normalize book name for a specific version (same logic as main.py)."""

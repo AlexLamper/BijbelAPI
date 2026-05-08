@@ -1,130 +1,92 @@
-# 📖 Scriptura API
+# BijbelAPI
 
-<p>
-  <img src="https://img.shields.io/badge/Version-v1.0-blue?style=for-the-badge" alt="Version" />
-  <img src="https://img.shields.io/github/license/AlexLamper/bijbel-api?style=for-the-badge" alt="License" />
-  <img src="https://img.shields.io/github/issues/AlexLamper/bijbel-api?style=for-the-badge" alt="Issues" />
-</p>
+Dé #1 Nederlandse Bijbel API voor ontwikkelaars.
 
-**A REST API for retrieving Bible texts and commentaries across multiple translations.**  
-Supports various languages including Dutch, English and African. Developed for developers, theologians, students, and hobby projects who want to use Biblical texts digitally.
+- Productie domein: `https://bijbelapi.com`
+- Docs: `https://bijbelapi.com/docs`
+- ReDoc: `https://bijbelapi.com/redoc`
 
----
+## Wat deze API biedt
 
-## ✨ Features
+- Nederlandse Bijbel endpoints (`/api/verse`, `/api/chapter`, `/api/daytext`, ...)
+- Parse endpoints voor complexe verwijzingen
+- Nederlandse commentary endpoint
+- Stripe billing flow voor betaalde API-toegang
 
-- 🔀 **Random verses** retrieval  
-- 🔍 **Text search** across the entire Bible  
-- 📚 **Structure overview** of books, chapters, and verses  
-- 📖 **Specific verses or passages** retrieval  
-- 📅 **Daily texts** generation (optional with seed)
-- 🧠 **Smart reference parsing** for complex Bible references  
-- 📝 **Commentaries** on chapters and verses (e.g. *Matthew Henry*)  
+## Ondersteunde vertalingen
 
----
+- `nbg1951`
+- `nld1939`
+- `sv` (alias: `statenvertaling`)
+- `bb` (optioneel, als databestand aanwezig is)
 
-## 🌐 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Homepage with API information + link to docs |
-| GET | `/api/random` | Random verse |
-| GET | `/api/verse?book=...&chapter=...&verse=...` | Specific verse |
-| GET | `/api/passage?book=...&chapter=...&start=...&end=...` | Multiple verses |
-| GET | `/api/books` | All books |
-| GET | `/api/chapters?book=...` | Chapters in book |
-| GET | `/api/verses?book=...&chapter=...` | Verse numbers in chapter |
-| GET | `/api/search?query=...` | Search in Bible text |
-| GET | `/api/daytext?seed=...` | Daily text, optional seed |
-| GET | `/api/versions` | Available translations |
-| GET | `/api/chapter?book=...&chapter=...` | Entire chapter |
-| GET | `/api/commentary?source=...&book=...&chapter=...` | Get commentary for an entire chapter (e.g. `matthew-henry`) |
-| GET | `/api/commentary?source=...&book=...&chapter=...&verse=...` | Get commentary for a specific verse (e.g. `matthew-henry`) |
-| **POST** | **`/api/parse/reference`** | **Parse complex Bible reference** |
-| **GET** | **`/api/parse/reference/{ref}`** | **Parse reference via URL** |
-| **POST** | **`/api/parse/references`** | **Parse multiple references** |
-
-👉 All routes are documented via:
-- `/docs` – Swagger UI
-- `/redoc` – ReDoc UI
-
----
-
-## 🧠 Smart Reference Parsing
-
-The new parsing endpoints handle complex Bible references that traditional APIs struggle with:
-
-### Supported Reference Types
-
-| Type | Example | Description |
-|------|---------|-------------|
-| **Discontinuous ranges** | `Psalm 104:26-36,37` | Multiple verse ranges |
-| **Cross-chapter** | `John 3:16-4:1` | References spanning chapters |
-| **Chapter-only** | `Philemon 1-21` | Entire chapter ranges |
-| **Optional verses** | `Luke 1:39-45[46-55]` | Main + optional verses |
-| **Verse suffixes** | `Habakkuk 3:2-19a` | References with letter suffixes |
-| **End references** | `Jeremiah 18:5-end` | From verse to end of chapter |
-
-### Usage Examples
+## Snelle start (lokaal)
 
 ```bash
-# Parse a complex reference
-curl "http://localhost:8081/api/parse/reference/Psalm%20104:26-36,37?version=asv"
-
-# Parse via POST with custom version
-curl -X POST "http://localhost:8081/api/parse/reference" \
-  -H "Content-Type: application/json" \
-  -d '{"reference": "Luke 1:39-45[46-55]", "version": "asv"}'
-
-# Parse multiple references
-curl -X POST "http://localhost:8081/api/parse/references" \
-  -H "Content-Type: application/json" \
-  -d '{"references": ["Psalm 104:26-36,37", "Jeremiah 18:1-11"], "version": "asv"}'
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python scripts/transform_bible_data.py
+python -m uvicorn main:app --reload --port 8081
 ```
 
-### Response Format
+Open:
+- `http://127.0.0.1:8081/`
+- `http://127.0.0.1:8081/docs`
 
-```json
-{
-  "reference": "Psalm 104:26-36,37",
-  "parsed": true,
-  "book": "Psalms",
-  "chapter": "104",
-  "verses": [
-    {"verse": "26", "text": "There the ships go to and fro..."},
-    {"verse": "27", "text": "All creatures look to you..."},
-    // ... more verses
-  ],
-  "formatted_text": "26 There the ships go to and fro... 27 All creatures look to you..."
-}
-```
+## Render deployment
 
----
+Deze repo bevat `render.yaml` met:
+- build command: `pip install -r requirements.txt`
+- start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- healthcheck: `/health`
 
-## 🧩 Expansion
+## Hostinger + domein checklist
 
-I plan to expand this API further, for example by:
-- Adding more Bible translations in various languages.
-- Adding additional API endpoints that can be useful.
-- Writing better documentation.
+1. Voeg `bijbelapi.com` toe als custom domain in Render.
+2. Zet de DNS records in Hostinger exact zoals Render toont.
+3. Stel redirect in:
+   - `www.bijbelapi.com` -> `bijbelapi.com` (301)
+4. Controleer SSL op Render (status: issued).
 
----
+## Stripe setup
 
-## 📜 License
+Verplichte variabelen:
 
-This API is licensed under the [MIT License](LICENSE).
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_ID_PRO_MONTHLY`
+- `STRIPE_PRICE_ID_PRO_YEARLY`
+- `APP_BASE_URL` (bijv. `https://bijbelapi.com`)
+- `BILLING_ENFORCED` (`true` in productie)
 
----
+Belangrijke billing endpoints:
 
-## 📎 Contact
+- `POST /billing/checkout-session`
+- `POST /billing/portal-session`
+- `GET /billing/status`
+- `POST /stripe/webhook`
 
-- GitHub: [@AlexLamper](https://github.com/AlexLamper)
-- Mail: `devlamper06@gmail.com`
-- Scriptura API: [https://www.scriptura-api.com](https://www.scriptura-api.com)
-- Scriptura: [https://www.scriptura.cloud](https://www.scriptura.cloud)
+## Data pipeline (NBG1951/NLD1939)
 
----
+Bronbestanden staan in:
+- `non-transformed-data/nbg/nldnbg_vpl.txt`
+- `non-transformed-data/nld/nldnbg_vpl.txt`
 
-## 📌 Version
+Converter:
+- `scripts/transform_bible_data.py`
 
-**Current Version**: `v1.0`
+Output:
+- `data/nbg1951.json`
+- `data/nld1939.json`
+
+## GitHub metadata (aanbevolen)
+
+- Description:
+  - `Dé #1 Nederlandse Bijbel API voor ontwikkelaars. FastAPI, Stripe-billing, Nederlandse vertalingen en commentary endpoints.`
+- Topics:
+  - `bible-api`, `dutch-bible`, `fastapi`, `python`, `rest-api`, `openapi`, `stripe`, `scripture`, `api-key-auth`
+
+## Licentie
+
+MIT
