@@ -268,7 +268,7 @@ def normalize_commentary_book(source_key: str, book_name: str):
 # --- Serve index.html on /
 @app.get("/", response_class=FileResponse)
 def serve_index():
-    index_path = os.path.join("site", "index.html")
+    index_path = os.path.join(BASE_DIR, "site", "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path, media_type="text/html")
     raise HTTPException(status_code=404, detail="index.html niet gevonden")
