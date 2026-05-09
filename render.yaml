@@ -7,6 +7,9 @@ services:
     startCommand: python scripts/sync_private_data.py && uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
+      # Secrets in Render Dashboard handmatig/koppelen: MONGODB_URI, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+      # STRIPE_PRICE_ID_PRO_MONTHLY, STRIPE_PRICE_ID_PRO_YEARLY. Optioneel: BILLING_ENFORCED=true, APP_BASE_URL,
+      # FREE_TIER_DAILY_LIMIT, PRO_TIER_DAILY_LIMIT, DEBUG_BILLING=false
       - key: PYTHON_VERSION
         value: 3.11
       - key: DATA_DIR
@@ -19,3 +22,5 @@ services:
         value: data
       - key: REQUIRE_PRIVATE_DATA
         value: true
+      - key: MONGODB_DB_NAME
+        value: bijbelapi

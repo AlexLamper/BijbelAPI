@@ -1,0 +1,148 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BijbelAPI | Gratis Nederlandse Bijbel API (JSON) voor ontwikkelaars</title>
+    <meta name="description" content="BijbelAPI: snelle Nederlandse Bijbel API met JSON, dagtekst, zoeken en parsing. Gratis tier voor testen; Pro via Stripe. OpenAPI op /docs.">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{CANONICAL_ORIGIN}}/">
+    <link rel="icon" href="/public/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/site/tw.css">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BijbelAPI">
+    <meta property="og:title" content="BijbelAPI | Nederlandse Bijbel API (JSON)">
+    <meta property="og:description" content="Gratis tier en Pro-abonnement. Nederlandse Bijbelteksten, parsing, commentaar en OpenAPI-documentatie.">
+    <meta property="og:url" content="{{CANONICAL_ORIGIN}}/">
+    <meta property="og:locale" content="nl_NL">
+    <meta property="og:image" content="{{CANONICAL_ORIGIN}}/public/images/logo.svg">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="BijbelAPI | Nederlandse Bijbel API">
+    <meta name="twitter:description" content="Gratis Nederlandse Bijbel API met JSON en documentatie op /docs.">
+
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{CANONICAL_ORIGIN}}/#website",
+      "name": "BijbelAPI",
+      "url": "{{CANONICAL_ORIGIN}}/",
+      "description": "Nederlandse Bijbel API met JSON, gratis tier en Pro via Stripe.",
+      "inLanguage": "nl-NL",
+      "publisher": { "@id": "{{CANONICAL_ORIGIN}}/#organization" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "{{CANONICAL_ORIGIN}}/#organization",
+      "name": "BijbelAPI",
+      "url": "{{CANONICAL_ORIGIN}}/",
+      "sameAs": ["https://github.com/AlexLamper/BijbelAPI"]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "BijbelAPI",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "url": "{{CANONICAL_ORIGIN}}/",
+      "description": "REST API voor Nederlandse Bijbelteksten, passages, dagtekst, zoeken, reference parsing en commentaar.",
+      "documentation": "{{CANONICAL_ORIGIN}}/docs",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free tier",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "description": "Gratis gebruik met configureerbare daglimiet per IP wanneer billing actief is."
+        },
+        {
+          "@type": "Offer",
+          "name": "BijbelAPI Pro — maandelijks",
+          "price": "9.99",
+          "priceCurrency": "EUR",
+          "description": "Maandelijks abonnement via Stripe Checkout."
+        },
+        {
+          "@type": "Offer",
+          "name": "BijbelAPI Pro — jaarlijks",
+          "price": "99.99",
+          "priceCurrency": "EUR",
+          "description": "Jaarabonnement via Stripe Checkout."
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Wat is BijbelAPI?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "BijbelAPI is een Nederlandstalige REST API waarmee ontwikkelaars Bijbelteksten in JSON kunnen opvragen, inclusief onder andere verzen, passages, dagtekst en zoeken. Er is OpenAPI-documentatie op /docs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is er een gratis Bijbel API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Er is een gratis tier voor testen en licht gebruik. Bij actieve billing kan een daglimiet per IP gelden; met een Pro-abonnement en API-sleutel krijg je hogere limieten via Stripe."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Welke Nederlandse vertalingen worden ondersteund?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "De codebase ondersteunt meerdere coderingen zoals nbg1951, bb, sv en nld1939. Welke bestanden daadwerkelijk op de server staan, zie je via GET /api/versions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Hoe vraag ik een specifiek vers op?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Gebruik GET /api/verse met queryparameters book, chapter en verse. Optioneel: parameter version voor een specifieke vertaling. Zie /docs voor alle velden."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Waar vind ik de technische documentatie?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Op het pad /docs staat Swagger UI met alle endpoints. ReDoc staat op /redoc."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Hoe werkt Pro en Stripe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Pro gebruikt Stripe Checkout en het Customer Portal. Endpoints zoals /billing/checkout-session en /billing/portal-session staan in de OpenAPI-specificatie."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Mag ik de API commercieel gebruiken?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dat hangt af van je abonnement en van de licenties op de onderliggende Bijbelteksten. Raadpleeg de pagina Bronnen en licenties en je eigen juridische advies."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Hoe neem ik contact op?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Via het e-mailadres op deze pagina of via de GitHub-repository AlexLamper/BijbelAPI."
+          }
+        }
+      ]
+    }
+  ]
+}
+    </script>
+</head>

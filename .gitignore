@@ -14,6 +14,7 @@ Thumbs.db
 # Environment files
 .env
 *.env
+.env.local
 
 # Logs
 .todo.txt
@@ -33,3 +34,5 @@ non-transformed-data/
 # Keep Bible datasets private (loaded from private repo at startup)
 data/*.json
 data/*.json.gz
+# Sync target for private repo (local + Render DATA_DIR); not source of truth in git
+private-data/

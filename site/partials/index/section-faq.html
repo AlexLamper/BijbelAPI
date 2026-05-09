@@ -1,0 +1,40 @@
+
+        <section id="veelgestelde-vragen" class="border-y border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
+                <h2 class="mb-8 text-center text-2xl font-semibold tracking-tight">Veelgestelde vragen</h2>
+                <div class="faq-accordion-list mx-auto max-w-3xl space-y-3">
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Wat is BijbelAPI?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">BijbelAPI is een Nederlandstalige REST API waarmee ontwikkelaars Bijbelteksten in JSON kunnen opvragen, inclusief onder andere verzen, passages, dagtekst en zoeken. Er is OpenAPI-documentatie op /docs.</div>
+                    </details>
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Is er een gratis Bijbel API?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">Ja. Er is een gratis tier voor testen en licht gebruik. Bij actieve billing kan een daglimiet per IP gelden; met een Pro-abonnement en API-sleutel krijg je hogere limieten via Stripe.</div>
+                    </details>
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Welke Nederlandse vertalingen worden ondersteund?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">De codebase ondersteunt meerdere coderingen zoals nbg1951, bb, sv en nld1939. Welke bestanden daadwerkelijk op de server staan, zie je via GET /api/versions.</div>
+                    </details>
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Hoe vraag ik een specifiek vers op?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">Gebruik GET /api/verse met queryparameters book, chapter en verse. Optioneel: parameter version voor een specifieke vertaling. Zie /docs voor alle velden.</div>
+                    </details>
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Waar vind ik de technische documentatie?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">Op het pad /docs staat Swagger UI met alle endpoints. ReDoc staat op /redoc.</div>
+                    </details>
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Hoe werkt Pro en Stripe?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">Pro gebruikt Stripe Checkout en het Customer Portal. Endpoints zoals /billing/checkout-session en /billing/portal-session staan in de OpenAPI-specificatie.</div>
+                    </details>
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Mag ik de API commercieel gebruiken?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">Dat hangt af van je abonnement en van de licenties op de onderliggende Bijbelteksten. Raadpleeg de pagina Bronnen en licenties en je eigen juridische advies.</div>
+                    </details>
+                    <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Hoe neem ik contact op?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
+                        <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">Via het e-mailadres in de contactsectie of via de GitHub-repository AlexLamper/BijbelAPI.</div>
+                    </details>
+                </div>
+            </div>
+        </section>

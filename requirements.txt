@@ -2,7 +2,7 @@ fastapi
 uvicorn
 python-dotenv
 slowapi
-sqlalchemy
+pymongo>=4.6
 stripe
 pydantic
 requests

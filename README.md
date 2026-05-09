@@ -47,7 +47,7 @@ Een REST API om Bijbelteksten en Nederlandstalige commentaargegevens op te vrage
 | **POST** | **`/api/parse/references`** | **Parse multiple references** |
 | POST | `/billing/checkout-session` | Create Stripe checkout session |
 | POST | `/billing/portal-session` | Create Stripe customer portal session |
-| GET | `/billing/status` | Get billing status for API key |
+| GET | `/billing/status` | Billing status (send header **`x-api-key`**, not a query param) |
 | POST | `/stripe/webhook` | Stripe webhook receiver |
 
 👉 All routes are documented via:

@@ -1,0 +1,126 @@
+<script>
+    (function () {
+        function esc(v) {
+            return String(v)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function stripHtml(v) {
+            return String(v || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        /* Map language codes to human-readable labels */
+        var langLabels = { nl: 'Nederlands', en: 'English', de: 'Deutsch', fr: 'Français', la: 'Latijn', grc: 'Grieks', he: 'Hebreeuws', es: 'Español' };
+        function langLabel(code) { return langLabels[code] || code; }
+
+        function renderVersions(list) {
+            var loadingEl = document.getElementById('versionsLoading');
+            var errorEl   = document.getElementById('versionsError');
+            var gridEl    = document.getElementById('versionsGrid');
+            if (!loadingEl || !errorEl || !gridEl) return;
+            loadingEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+
+            var html = '';
+            for (var i = 0; i < list.length; i++) {
+                var item        = list[i] || {};
+                var key         = esc(item.key || '-');
+                var name        = esc(item.name || item.key || '-');
+                var shortname   = esc(item.shortname || '-');
+                var module      = esc(item.module || '-');
+                var langCode    = item.lang || '-';
+                var lang        = esc(langLabel(langCode));
+                var year        = esc(item.year || '-');
+                var description = esc(stripHtml(item.description || 'Geen beschrijving beschikbaar.'));
+                var endpoint    = esc('/api/verse?book=Genesis&amp;chapter=1&amp;verse=1&amp;version=' + (item.key || ''));
+
+                html += ''
+                    + '<article style="animation-delay:' + (i * 40) + 'ms" class="versions-card group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">'
+
+                    /* ── Header: name + key badge ── */
+                    + '<div class="mb-4 flex items-start justify-between gap-4">'
+                    +   '<h3 class="text-sm font-semibold leading-snug text-slate-900">' + name + '</h3>'
+                    +   '<code class="shrink-0 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-semibold tracking-wide text-blue-600">' + key + '</code>'
+                    + '</div>'
+
+                    /* ── Meta pills ── */
+                    + '<div class="mb-4 flex flex-wrap gap-2">'
+                    +   '<span class="versions-pill"><span class="versions-pill-label">Kort</span>' + shortname + '</span>'
+                    +   '<span class="versions-pill"><span class="versions-pill-label">Module</span>' + module + '</span>'
+                    +   '<span class="versions-pill"><span class="versions-pill-label">Taal</span>' + lang + '</span>'
+                    +   '<span class="versions-pill"><span class="versions-pill-label">Jaar</span>' + year + '</span>'
+                    + '</div>'
+
+                    /* ── Description ── */
+                    + '<p class="mb-5 flex-grow text-sm leading-relaxed text-slate-600">' + description + '</p>'
+
+                    /* ── Endpoint ── */
+                    + '<div class="mt-auto rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">'
+                    +   '<p class="mb-1 text-[10px] font-medium uppercase tracking-widest text-slate-600">Voorbeeld endpoint</p>'
+                    +   '<code class="block truncate font-mono text-xs text-slate-700">' + endpoint + '</code>'
+                    + '</div>'
+
+                    + '</article>';
+            }
+
+            gridEl.innerHTML = html;
+
+            /* Inject shared card styles once */
+            if (!document.getElementById('versionsCardStyles')) {
+                var style = document.createElement('style');
+                style.id = 'versionsCardStyles';
+                style.textContent = [
+                    '@keyframes versions-fade-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}',
+                    '.versions-card{opacity:0;animation:versions-fade-in .35s ease forwards}',
+                    '.versions-pill{display:inline-flex;align-items:center;gap:4px;border-radius:8px;border:1px solid #cbd5e1;background:#f1f5f9;padding:3px 9px;font-size:11px;color:#334155}',
+                    '.versions-pill-label{font-weight:600;color:#64748b;margin-right:2px}'
+                ].join('');
+                document.head.appendChild(style);
+            }
+        }
+
+        function showVersionsError(msg) {
+            var loadingEl = document.getElementById('versionsLoading');
+            var errorEl   = document.getElementById('versionsError');
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (errorEl) {
+                errorEl.classList.remove('hidden');
+                errorEl.innerHTML = '<svg class="h-4 w-4 shrink-0 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>'
+                    + '<span>' + (msg || 'Kon beschikbare vertalingen momenteel niet laden.') + '</span>';
+            }
+        }
+
+        function loadVersionsCompat() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/versions', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    showVersionsError('Kon beschikbare vertalingen momenteel niet laden.');
+                    return;
+                }
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (!Array.isArray(data)) throw new Error('Invalid payload');
+                    renderVersions(data);
+                } catch (e) {
+                    showVersionsError('Kon beschikbare vertalingen momenteel niet laden.');
+                }
+            };
+            xhr.onerror = function () {
+                showVersionsError('Kon beschikbare vertalingen momenteel niet laden.');
+            };
+            xhr.send();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadVersionsCompat);
+        } else {
+            loadVersionsCompat();
+        }
+    })();
+    </script>

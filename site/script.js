@@ -4,6 +4,172 @@ function showEl(id, show) {
     el.classList.toggle('hidden', !show);
 }
 
+const BIJBELAPI_LS_API_KEY = 'bijbelapi_api_key';
+const BIJBELAPI_LS_BILLING_EMAIL = 'bijbelapi_billing_email';
+
+function looksLikeBijbelapiKey(v) {
+    const s = String(v || '').trim();
+    return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(s);
+}
+
+/**
+ * Sla ingevoerde sleutel op in localStorage en ververs Pro-UI. Optioneel: silent (geen fout bij half typen).
+ */
+async function persistSavedApiKeyFromInput(savedApiInput, options = {}) {
+    const { requireValidEntry = false, silent = false } = options;
+    if (!savedApiInput) return false;
+    const v = savedApiInput.value.trim();
+    const hint = document.getElementById('savedApiKeyHint');
+
+    if (!v) {
+        if (requireValidEntry && hint) {
+            hint.classList.remove('hidden');
+            hint.textContent = 'Plak eerst je API-sleutel.';
+        }
+        return false;
+    }
+    if (!looksLikeBijbelapiKey(v)) {
+        if (!silent && hint) {
+            hint.classList.remove('hidden');
+            hint.textContent =
+                'Ongeldig formaat. Verwacht een UUID (bijv. 1cf235a5-2c34-4ae3-9152-49ee4c54547f).';
+        }
+        return false;
+    }
+    try {
+        localStorage.setItem(BIJBELAPI_LS_API_KEY, v);
+    } catch {
+        if (hint) {
+            hint.classList.remove('hidden');
+            hint.textContent =
+                'Lokaal opslaan mislukt (privacy-modus, quota of browser blokkeert storage).';
+        }
+        return false;
+    }
+    if (hint) {
+        hint.classList.add('hidden');
+        hint.textContent = '';
+    }
+    await refreshBillingUiFromSavedKey();
+    return true;
+}
+
+function stripUrlQueryParam(param) {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has(param)) return;
+    url.searchParams.delete(param);
+    const q = url.searchParams.toString();
+    window.history.replaceState({}, '', `${url.pathname}${q ? `?${q}` : ''}${url.hash}`);
+}
+
+async function pollCheckoutSessionForApiKey(sessionId) {
+    const valEl = document.getElementById('checkoutKeyRevealValue');
+    const maxAttempts = 24;
+    for (let i = 0; i < maxAttempts; i += 1) {
+        try {
+            const res = await fetch(
+                `/billing/checkout-success?session_id=${encodeURIComponent(sessionId)}`,
+                { headers: { Accept: 'application/json' } },
+            );
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.ready && data.api_key) {
+                if (valEl) valEl.textContent = data.api_key;
+                showEl('checkoutKeyReveal', true);
+                if (data.billing_email) {
+                    localStorage.setItem(BIJBELAPI_LS_BILLING_EMAIL, data.billing_email);
+                    const pe = document.getElementById('portalEmail');
+                    if (pe) pe.value = data.billing_email;
+                }
+                const remember = document.getElementById('chkRememberRevealedKey');
+                if (!remember || remember.checked) {
+                    localStorage.setItem(BIJBELAPI_LS_API_KEY, data.api_key);
+                    const inp = document.getElementById('savedApiKeyInput');
+                    if (inp) inp.value = data.api_key;
+                }
+                stripUrlQueryParam('session_id');
+                await refreshBillingUiFromSavedKey();
+                return;
+            }
+            billingDebugLog(`checkout-success poll attempt=${i + 1} ready=${Boolean(data.ready)}`);
+        } catch (e) {
+            billingDebugLog(`poll checkout-success error ${e && e.message ? e.message : String(e)}`);
+        }
+        await new Promise((r) => setTimeout(r, 750));
+    }
+}
+
+async function refreshBillingUiFromSavedKey() {
+    let key = '';
+    try {
+        key = localStorage.getItem(BIJBELAPI_LS_API_KEY) || '';
+    } catch {
+        const hint = document.getElementById('savedApiKeyHint');
+        if (hint) {
+            hint.classList.remove('hidden');
+            hint.textContent = 'Kan geen sleutel lezen uit lokale opslag (browser of privacy-modus).';
+        }
+        return;
+    }
+    const inp = document.getElementById('savedApiKeyInput');
+    if (inp && !inp.value && key) inp.value = key;
+    const hint = document.getElementById('savedApiKeyHint');
+
+    if (!key) {
+        showEl('billingProActivePanel', false);
+        showEl('checkoutEmailBlock', true);
+        showEl('proSubscribeCardsWrap', true);
+        showEl('proFairUseFootnote', true);
+        if (hint) {
+            hint.classList.add('hidden');
+            hint.textContent = '';
+        }
+        return;
+    }
+
+    try {
+        const res = await fetch('/billing/status', {
+            headers: { Accept: 'application/json', 'x-api-key': key },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.active) {
+            showEl('billingProActivePanel', false);
+            showEl('checkoutEmailBlock', true);
+            showEl('proSubscribeCardsWrap', true);
+            showEl('proFairUseFootnote', true);
+            if (hint) {
+                hint.classList.remove('hidden');
+                hint.textContent =
+                    res.status === 404
+                        ? 'API-sleutel onbekend. Controleer of je de juiste sleutel plaatst.'
+                        : 'Geen actief Pro-abonnement voor deze sleutel.';
+            }
+            return;
+        }
+
+        const detail = document.getElementById('billingProActiveDetail');
+        if (detail) {
+            const em = data.email_masked || localStorage.getItem(BIJBELAPI_LS_BILLING_EMAIL) || '';
+            detail.textContent = `Plan: ${data.plan || 'pro'}. Status: ${data.status || 'active'}.${em ? ` Account: ${em}.` : ''}`;
+        }
+        showEl('billingProActivePanel', true);
+        showEl('checkoutEmailBlock', false);
+        showEl('proSubscribeCardsWrap', false);
+        showEl('proFairUseFootnote', false);
+        const pem = localStorage.getItem(BIJBELAPI_LS_BILLING_EMAIL);
+        const portalEmail = document.getElementById('portalEmail');
+        if (portalEmail && pem && !portalEmail.value) portalEmail.value = pem;
+        if (hint) {
+            hint.classList.remove('hidden');
+            hint.textContent = 'Pro actief voor opgeslagen sleutel.';
+        }
+    } catch {
+        if (hint) {
+            hint.classList.remove('hidden');
+            hint.textContent = 'Kon status niet laden.';
+        }
+    }
+}
+
 const BILLING_DEBUG_ENABLED = new URLSearchParams(window.location.search).get('debug') === '1';
 function billingDebugLog(message) {
     if (!BILLING_DEBUG_ENABLED) return;
@@ -160,6 +326,10 @@ function initBillingAndBanners() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('checkout') === 'success') showEl('checkoutBanner', true);
     if (params.get('checkout') === 'cancelled') showEl('checkoutCancelledBanner', true);
+    const sessionId = params.get('session_id');
+    if (params.get('checkout') === 'success' && sessionId) {
+        pollCheckoutSessionForApiKey(sessionId);
+    }
 
     const monthlyBtn = document.getElementById('btnCheckoutMonthly');
     const yearlyBtn = document.getElementById('btnCheckoutYearly');
@@ -203,7 +373,65 @@ function initBillingAndBanners() {
                 billingDebugLog(`debug ping failed: ${err && err.message ? err.message : String(err)}`);
             });
     }
+
+    const savedApiInput = document.getElementById('savedApiKeyInput');
+    let storedKey = null;
+    try {
+        storedKey = localStorage.getItem(BIJBELAPI_LS_API_KEY);
+    } catch {
+        storedKey = null;
+    }
+    if (savedApiInput && storedKey) savedApiInput.value = storedKey;
+
+    const btnSaveLocal = document.getElementById('btnSaveApiKeyLocal');
+    if (btnSaveLocal) {
+        btnSaveLocal.addEventListener('click', async () => {
+            await persistSavedApiKeyFromInput(savedApiInput, { requireValidEntry: true });
+        });
+    }
+    if (savedApiInput) {
+        savedApiInput.addEventListener('blur', () => {
+            persistSavedApiKeyFromInput(savedApiInput, { silent: true });
+        });
+        savedApiInput.addEventListener('paste', () => {
+            setTimeout(() => persistSavedApiKeyFromInput(savedApiInput, { silent: true }), 0);
+        });
+    }
+
+    const btnClearLocal = document.getElementById('btnClearSavedApiKey');
+    if (btnClearLocal) {
+        btnClearLocal.addEventListener('click', async () => {
+            try {
+                localStorage.removeItem(BIJBELAPI_LS_API_KEY);
+                localStorage.removeItem(BIJBELAPI_LS_BILLING_EMAIL);
+            } catch {
+                /* ignore */
+            }
+            if (savedApiInput) savedApiInput.value = '';
+            await refreshBillingUiFromSavedKey();
+        });
+    }
+
+    const btnCopyKey = document.getElementById('btnCopyRevealedKey');
+    if (btnCopyKey) {
+        btnCopyKey.addEventListener('click', async () => {
+            const el = document.getElementById('checkoutKeyRevealValue');
+            const text = el ? el.textContent.trim() : '';
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch {
+                /* ignore */
+            }
+        });
+    }
+
+    void refreshBillingUiFromSavedKey();
 }
+
+/** Ook aanroepbaar vanuit inline fallback op de homepage (`bind()` in index.html). */
+window.persistSavedApiKeyFromInput = persistSavedApiKeyFromInput;
+window.refreshBillingUiFromSavedKey = refreshBillingUiFromSavedKey;
 
 function escapeHtml(value) {
     return String(value)

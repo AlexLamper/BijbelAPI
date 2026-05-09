@@ -1,0 +1,19 @@
+
+    <div id="checkoutBanner" class="hidden border-b border-emerald-200 bg-emerald-50 px-6 py-3 text-center text-sm text-emerald-900" role="status">
+        <strong>Betaling geslaagd.</strong> Je abonnement wordt geactiveerd. Je API-sleutel wordt gekoppeld aan het e-mailadres van Checkout — bij vragen, zie <a href="#veelgestelde-vragen" class="font-medium underline">FAQ</a> of <a href="#contact" class="font-medium underline">contact</a>.
+    </div>
+    <div id="checkoutCancelledBanner" class="hidden border-b border-amber-200 bg-amber-50 px-6 py-3 text-center text-sm text-amber-950" role="status">
+        Checkout geannuleerd. Je kunt op elk moment opnieuw een plan kiezen.
+    </div>
+    <div id="checkoutKeyReveal" class="hidden border-b border-blue-200 bg-blue-50 px-6 py-4 text-center text-sm text-slate-900" role="status">
+        <p class="mb-2 font-medium">Je API-sleutel voor BijbelAPI Pro</p>
+        <p class="mb-2 text-xs text-slate-600">Bewaar deze sleutel veilig (niet in publieke repo’s). Je kunt hem hieronder opnieuw kopiëren zolang deze pagina open staat.</p>
+        <code id="checkoutKeyRevealValue" class="mb-3 inline-block max-w-full break-all rounded-lg bg-white px-3 py-2 text-xs text-slate-900 ring-1 ring-slate-200"></code>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+            <button type="button" id="btnCopyRevealedKey" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-800">Kopieer sleutel</button>
+            <label class="flex cursor-pointer items-center gap-2 text-xs text-slate-700">
+                <input type="checkbox" id="chkRememberRevealedKey" checked class="rounded border-slate-300">
+                Onthoud op dit apparaat
+            </label>
+        </div>
+    </div>

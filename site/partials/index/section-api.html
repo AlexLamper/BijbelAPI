@@ -1,0 +1,42 @@
+
+        <section id="api" class="border-y border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
+                <h2 class="mb-3 text-2xl font-semibold tracking-tight">API-overzicht</h2>
+                <p class="mb-6 text-sm text-slate-600">Belangrijkste endpoints voor dagelijkse integratie. Volledige lijst op <a href="/docs" class="font-medium text-blue-700 hover:underline">/docs</a>.</p>
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-slate-100 text-slate-700">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold">Methode</th>
+                                <th class="px-4 py-3 font-semibold">Endpoint</th>
+                                <th class="px-4 py-3 font-semibold">Beschrijving</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/health</code></td><td class="px-4 py-3">Health check van de API</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/mongo-status</code></td><td class="px-4 py-3">Testverbinding met MongoDB (billing/API-keys)</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/random</code></td><td class="px-4 py-3">Willekeurig vers ophalen</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/daytext</code></td><td class="px-4 py-3">Dagtekst op basis van datum of seed</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/verse</code></td><td class="px-4 py-3">Specifiek vers opvragen</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/passage</code></td><td class="px-4 py-3">Bereik van verzen opvragen</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/chapter</code></td><td class="px-4 py-3">Hele hoofdstuktekst ophalen</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/books</code></td><td class="px-4 py-3">Lijst met bijbelboeken</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/chapters</code></td><td class="px-4 py-3">Lijst met hoofdstukken per boek</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/verses</code></td><td class="px-4 py-3">Lijst met versnummers per hoofdstuk</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/search</code></td><td class="px-4 py-3">Zoeken in bijbeltekst</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/versions</code></td><td class="px-4 py-3">Beschikbare vertalingen + metadata</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/commentary</code></td><td class="px-4 py-3">Nederlands commentaar op hoofdstuk of vers</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/api/parse/reference</code></td><td class="px-4 py-3">Bijbelverwijzing parseren</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/parse/reference/{reference}</code></td><td class="px-4 py-3">Bijbelverwijzing parseren via URL</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/api/parse/references</code></td><td class="px-4 py-3">Meerdere verwijzingen parseren</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/billing/checkout-session</code></td><td class="px-4 py-3">Start Stripe Checkout voor Pro</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/billing/portal-session</code></td><td class="px-4 py-3">Open Stripe klantportaal</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/checkout-success?session_id=</code></td><td class="px-4 py-3">Na Checkout: poll tot API-sleutel beschikbaar is</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/status</code></td><td class="px-4 py-3">Abonnementsstatus van API-key (header <code class="text-xs">x-api-key</code>)</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/plans</code></td><td class="px-4 py-3">Beschikbare prijsplannen</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/secure-data</code></td><td class="px-4 py-3">Voorbeeld endpoint met verplichte API-key</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>

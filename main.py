@@ -4,17 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, Response
 from fastapi import Security, Depends
 from fastapi.security import APIKeyHeader
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
+from bson import ObjectId
+
+import billing_mongo as billing_db
 import json
 import os
+import re
 import gzip
 import random
 import hashlib
 from datetime import date, datetime, timezone
 from xml.sax.saxutils import escape as xml_escape
-from typing import Optional
-from models import APIKey, Base, BillingSubscription, StripeWebhookEvent
+from typing import Any, Optional
 from dotenv import load_dotenv
 import stripe
 import uuid
@@ -31,7 +32,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 
 # Define Base Directory for absolute paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# .env = gedeelde secrets; .env.local = lokale overrides (o.a. Stripe test) — niet committen
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv(os.path.join(BASE_DIR, ".env.local"), override=True)
 DEFAULT_DATA_DIR = os.path.join(BASE_DIR, "data")
+# Sync script (Render) schrijft standaard naar private-data onder project root
+PRIVATE_DATA_FALLBACK = os.path.join(BASE_DIR, "private-data")
 DATA_DIR = os.getenv("DATA_DIR", DEFAULT_DATA_DIR)
 
 app = FastAPI(
@@ -70,8 +76,6 @@ async def validation_exception_handler(request, exc):
         content={"error": 422, "message": "Validatiefout", "details": exc.errors()},
     )
 
-# Load environment variables from .env file
-load_dotenv()
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICE_ID_PRO_MONTHLY = os.getenv("STRIPE_PRICE_ID_PRO_MONTHLY", "")
@@ -79,6 +83,49 @@ STRIPE_PRICE_ID_PRO_YEARLY = os.getenv("STRIPE_PRICE_ID_PRO_YEARLY", "")
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8081")
 BILLING_ENFORCED = os.getenv("BILLING_ENFORCED", "false").lower() == "true"
 DEBUG_BILLING = os.getenv("DEBUG_BILLING", "false").lower() == "true"
+# Uitgebreide billing-/Stripe-stappen in logs (Render: zet aan tijdens testen; geen volledige secrets).
+BILLING_TRACE_LOG = os.getenv("BILLING_TRACE_LOG", "false").lower() == "true"
+# Optioneel: log elke geslaagde API-request met Pro-key (veel logvolume; alleen tijdelijk aanzetten).
+BILLING_TRACE_REQUESTS = os.getenv("BILLING_TRACE_REQUESTS", "false").lower() == "true"
+
+
+def _billing_should_trace() -> bool:
+    return BILLING_TRACE_LOG or DEBUG_BILLING
+
+
+def _mask_secret(value: str, visible: int = 4) -> str:
+    if not value:
+        return ""
+    if len(value) <= visible * 2:
+        return "*" * len(value)
+    return f"{value[:visible]}...{value[-visible:]}"
+
+
+def _mask_email_for_log(email: Optional[str]) -> str:
+    if not email or "@" not in email:
+        return "(geen)"
+    local, _, domain = email.partition("@")
+    if len(local) <= 1:
+        return f"*@{domain}"
+    return f"{local[0]}***@{domain}"
+
+
+def _mask_api_key_for_log(key: Optional[str]) -> str:
+    if not key:
+        return "(geen)"
+    if len(key) <= 8:
+        return "***"
+    return f"{key[:6]}…{key[-4:]}"
+
+
+def billing_trace(msg: str, **kwargs: Any) -> None:
+    if not _billing_should_trace():
+        return
+    if kwargs:
+        tail = " ".join(f"{k}={v}" for k, v in kwargs.items())
+        logging.info(f"[billing-trace] {msg} | {tail}")
+    else:
+        logging.info(f"[billing-trace] {msg}")
 
 
 def public_base_url() -> str:
@@ -94,6 +141,33 @@ _SITEMAP_ENTRIES = (
     ("/bron.html", "0.45", "yearly"),
 )
 
+_HTML_INCLUDE_PATTERN = re.compile(r"<!--\s*include:\s*([a-zA-Z0-9_./-]+)\s*-->")
+
+
+def _expand_html_includes(html: str, site_dir: str, *, depth: int = 0) -> str:
+    """
+    Inline <!-- include: path/relative/to/site/dir.html --> markers (recursive).
+    Paths must stay under site_dir; used for splitting large pages like index.html.
+    """
+    if depth > 16:
+        raise HTTPException(status_code=500, detail="HTML-include keten te diep")
+    site_root = os.path.abspath(site_dir)
+
+    def _replace(match: re.Match[str]) -> str:
+        rel = match.group(1).strip().replace("\\", "/")
+        if not rel.endswith(".html") or rel.startswith("/") or ".." in rel.split("/"):
+            raise HTTPException(status_code=500, detail="Ongeldige HTML-include")
+        full_path = os.path.abspath(os.path.join(site_root, *rel.split("/")))
+        if not full_path.startswith(site_root + os.sep):
+            raise HTTPException(status_code=500, detail="HTML-include buiten site-map")
+        if not os.path.isfile(full_path):
+            raise HTTPException(status_code=500, detail=f"Ontbrekende partial: {rel}")
+        with open(full_path, encoding="utf-8") as inc_f:
+            inner = inc_f.read()
+        return _expand_html_includes(inner, site_dir, depth=depth + 1)
+
+    return _HTML_INCLUDE_PATTERN.sub(_replace, html)
+
 
 def _inject_canonical_html(relative_path: str) -> HTMLResponse:
     path = os.path.join(BASE_DIR, "site", relative_path)
@@ -101,11 +175,20 @@ def _inject_canonical_html(relative_path: str) -> HTMLResponse:
         raise HTTPException(status_code=404, detail="Pagina niet gevonden")
     with open(path, encoding="utf-8") as f:
         html = f.read()
+    site_dir = os.path.join(BASE_DIR, "site")
+    if "<!-- include:" in html:
+        html = _expand_html_includes(html, site_dir)
     html = html.replace("{{CANONICAL_ORIGIN}}", public_base_url())
+    html = html.replace("{{FREE_TIER_DAILY_LIMIT}}", f"{FREE_TIER_DAILY_LIMIT:,}".replace(",", "."))
+    html = html.replace("{{PRO_TIER_DAILY_LIMIT}}", f"{PRO_TIER_DAILY_LIMIT:,}".replace(",", "."))
     return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
-FREE_TIER_DAILY_LIMIT = int(os.getenv("FREE_TIER_DAILY_LIMIT", "5000"))
+
+
+FREE_TIER_DAILY_LIMIT = int(os.getenv("FREE_TIER_DAILY_LIMIT", "1000"))
+PRO_TIER_DAILY_LIMIT = int(os.getenv("PRO_TIER_DAILY_LIMIT", "100000"))
 stripe.api_key = STRIPE_SECRET_KEY
-FREE_TIER_USAGE = {}
+FREE_TIER_USAGE: dict[tuple[str, str], int] = {}
+PRO_TIER_USAGE: dict[tuple[str, str], int] = {}
 
 # CORS settings
 app.add_middleware(
@@ -146,11 +229,66 @@ COMMENTARY_SOURCE_ALIASES = {
     "matthew-henry-nl": "matthew_henry_nl",
 }
 
+def _bible_data_candidate_dirs() -> list[str]:
+    out: list[str] = []
+    for d in [DATA_DIR, DEFAULT_DATA_DIR, PRIVATE_DATA_FALLBACK]:
+        if d not in out:
+            out.append(d)
+    return out
+
+
+def _any_bible_json_locally() -> bool:
+    for d in _bible_data_candidate_dirs():
+        try:
+            if os.path.isdir(d) and any(name.endswith(".json") for name in os.listdir(d)):
+                return True
+        except OSError:
+            continue
+    return False
+
+
+def _maybe_sync_private_repo_bible_data() -> None:
+    """
+    Als er nog geen .json bijbelbestanden lokaal staan maar GITHUB_DATA_REPO wel gezet is,
+    voer sync_private_data.py uit (zelfde als op Render vóór uvicorn).
+    Vereist voor private repos: GITHUB_TOKEN in .env.
+    """
+    if os.getenv("SKIP_PRIVATE_DATA_SYNC", "").strip().lower() in ("1", "true", "yes", "on"):
+        return
+    if _any_bible_json_locally():
+        return
+    repo = os.getenv("GITHUB_DATA_REPO", "").strip()
+    if not repo:
+        logging.info(
+            "Geen lokale bijbel-JSON en GITHUB_DATA_REPO ontbreekt — sync overgeslagen. "
+            "Zet GITHUB_DATA_REPO (+ GITHUB_TOKEN) of plaats .json in data/ of private-data/."
+        )
+        return
+    script_path = os.path.join(BASE_DIR, "scripts", "sync_private_data.py")
+    if not os.path.isfile(script_path):
+        logging.warning("[data-sync] Script niet gevonden: %s", script_path)
+        return
+    logging.info("[data-sync] Geen lokale JSON; start sync uit GitHub-repo %s", repo)
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("bijbelapi_sync_private_data", script_path)
+    if spec is None or spec.loader is None:
+        logging.error("[data-sync] Kan module niet laden")
+        return
+    mod = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(mod)
+        rc = int(mod.main())
+        if rc != 0:
+            logging.warning("[data-sync] Script exit code %s (controleer token, repo, branch, subdir)", rc)
+        else:
+            logging.info("[data-sync] Klaar.")
+    except Exception as e:
+        logging.exception("[data-sync] Sync mislukt: %s", e)
+
+
 def load_all_versions():
-    candidate_dirs = []
-    for d in [DATA_DIR, DEFAULT_DATA_DIR]:
-        if d not in candidate_dirs:
-            candidate_dirs.append(d)
+    candidate_dirs = _bible_data_candidate_dirs()
 
     versions_dir = None
     for d in candidate_dirs:
@@ -218,6 +356,7 @@ def load_all_versions():
         logging.warning(f"Ontbrekende verplichte vertalingen: {', '.join(missing_translations)}")
     return versions
 
+_maybe_sync_private_repo_bible_data()
 all_versions = load_all_versions()
 
 def get_version_key(version: str):
@@ -409,6 +548,14 @@ def bron_page():
 @app.head("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/api/mongo-status")
+@app.head("/api/mongo-status")
+@limiter.limit("20/minute")
+def mongo_status_public(request: Request):
+    """Publieke ping naar MongoDB Atlas (geen secrets in response)."""
+    return billing_db.ping_mongo()
 
 # --- Existing Bible endpoints (unchanged) ---
 @app.get("/api/random")
@@ -611,20 +758,40 @@ def get_commentary(request: Request, source: str, book: str, chapter: str, verse
         return {verse: verses[verse]}
     return verses
 
-# --- API-key authenticatie ---
-# Database setup (SQLite)
-db_path = os.path.join(BASE_DIR, "test.db")
-engine = create_engine(f"sqlite:///{db_path}")
-SessionLocal = sessionmaker(bind=engine)
-Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def _startup_billing_mongo():
+    if not billing_db.get_mongo_uri():
+        logging.warning("MONGODB_URI ontbreekt — API-keys en billing gebruiken geen database.")
+        return
+    try:
+        billing_db.ensure_billing_indexes()
+        logging.info("MongoDB billing indexes OK (%s)", billing_db.get_mongo_db_name())
+    except Exception as e:
+        logging.exception("MongoDB index-init mislukt: %s", e)
+
+
+def _require_mongo_configured():
+    if not billing_db.get_mongo_uri():
+        raise HTTPException(
+            status_code=503,
+            detail="Database niet geconfigureerd: zet MONGODB_URI (MongoDB Atlas connection string).",
+        )
+
 
 def is_valid_key_in_db(key: str):
-    session = SessionLocal()
-    api_key = session.query(APIKey).filter_by(api_key=key, active=True).first()
-    session.close()
-    return api_key is not None
+    if not billing_db.get_mongo_uri():
+        return False
+    try:
+        billing_db.ensure_billing_indexes()
+        db = billing_db.get_billing_db()
+        return billing_db.mongo_find_active_api_key_by_secret(db, key) is not None
+    except Exception as e:
+        logging.warning("is_valid_key_in_db: %s", e)
+        return False
+
 
 def verify_api_key(key: str = Security(api_key_header)):
+    _require_mongo_configured()
     if not is_valid_key_in_db(key):
         raise HTTPException(status_code=403, detail="Ongeldige of verlopen sleutel")
 
@@ -645,11 +812,41 @@ def _enforce_free_tier_limit(request: Request) -> None:
     count = FREE_TIER_USAGE.get(usage_key, 0) + 1
     FREE_TIER_USAGE[usage_key] = count
     if count > FREE_TIER_DAILY_LIMIT:
+        billing_trace(
+            "free_tier_geblokkeerd",
+            ip=ip,
+            count=count,
+            limiet=FREE_TIER_DAILY_LIMIT,
+            path=str(request.url.path),
+        )
         raise HTTPException(
             status_code=429,
             detail=(
                 "Free tier limiet bereikt voor vandaag. "
                 "Maak een betaald abonnement aan voor hogere limieten."
+            ),
+        )
+
+
+def _enforce_pro_tier_limit(request: Request, api_key: str) -> None:
+    today = date.today().isoformat()
+    token = hashlib.sha256(api_key.encode("utf-8")).hexdigest()[:32]
+    usage_key = (token, today)
+    count = PRO_TIER_USAGE.get(usage_key, 0) + 1
+    PRO_TIER_USAGE[usage_key] = count
+    if count > PRO_TIER_DAILY_LIMIT:
+        billing_trace(
+            "pro_tier_geblokkeerd",
+            count=count,
+            limiet=PRO_TIER_DAILY_LIMIT,
+            path=str(request.url.path),
+            api_key=_mask_api_key_for_log(api_key),
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Pro fair-use limiet voor vandaag bereikt. Neem contact op bij ongebruikelijk hoge load "
+                "of probeer morgen opnieuw."
             ),
         )
 
@@ -664,21 +861,35 @@ def ensure_paid_access(request: Request, key: Optional[str]) -> None:
         _enforce_free_tier_limit(request)
         return
 
-    session = SessionLocal()
-    try:
-        api_key = session.query(APIKey).filter_by(api_key=key, active=True).first()
-        if not api_key:
-            raise HTTPException(status_code=403, detail="Ongeldige of verlopen sleutel")
-        subscription = (
-            session.query(BillingSubscription)
-            .filter_by(api_key_id=api_key.id)
-            .order_by(BillingSubscription.updated_at.desc())
-            .first()
+    _require_mongo_configured()
+    billing_db.ensure_billing_indexes()
+    db = billing_db.get_billing_db()
+    api_key_doc = billing_db.mongo_find_active_api_key_by_secret(db, key)
+    if not api_key_doc:
+        billing_trace(
+            "ensure_paid_access: geweigerd ongeldige_sleutel",
+            path=str(request.url.path),
+            api_key=_mask_api_key_for_log(key),
         )
-        if not subscription or subscription.status not in {"active", "trialing"}:
-            raise HTTPException(status_code=402, detail="Geen actief abonnement")
-    finally:
-        session.close()
+        raise HTTPException(status_code=403, detail="Ongeldige of verlopen sleutel")
+    subscription = billing_db.mongo_find_latest_subscription_by_api_key_id(db, api_key_doc["_id"])
+    if not subscription or subscription.get("status") not in {"active", "trialing"}:
+        billing_trace(
+            "ensure_paid_access: geweigerd geen_actief_abonnement",
+            path=str(request.url.path),
+            api_key=_mask_api_key_for_log(key),
+            subscription_status=(subscription or {}).get("status"),
+        )
+        raise HTTPException(status_code=402, detail="Geen actief abonnement")
+    _enforce_pro_tier_limit(request, key)
+    if BILLING_TRACE_REQUESTS:
+        billing_trace(
+            "ensure_paid_access: ok_pro_request",
+            path=str(request.url.path),
+            api_key=_mask_api_key_for_log(key),
+            subscription_status=subscription.get("status"),
+            plan=subscription.get("plan_name"),
+        )
 
 @app.get("/secure-data")
 @limiter.limit("10/minute")
@@ -763,14 +974,6 @@ def get_price_id_for_plan(plan: str) -> str:
     return price_id
 
 
-def _mask_secret(value: str, visible: int = 4) -> str:
-    if not value:
-        return ""
-    if len(value) <= visible * 2:
-        return "*" * len(value)
-    return f"{value[:visible]}...{value[-visible:]}"
-
-
 def _ensure_local_billing_debug_access(request: Request) -> None:
     if not DEBUG_BILLING:
         raise HTTPException(status_code=404, detail="Niet gevonden")
@@ -779,16 +982,12 @@ def _ensure_local_billing_debug_access(request: Request) -> None:
         raise HTTPException(status_code=403, detail="Alleen lokaal beschikbaar")
 
 
-def record_processed_event(session, event_id: str, event_type: str) -> bool:
-    """
-    Returns True when event is already processed, False when newly recorded.
-    """
-    existing = session.query(StripeWebhookEvent).filter_by(stripe_event_id=event_id).first()
-    if existing:
-        return True
-    session.add(StripeWebhookEvent(stripe_event_id=event_id, event_type=event_type))
-    session.commit()
-    return False
+def record_processed_event(event_id: str, event_type: str) -> bool:
+    """True wanneer event al eerder verwerkt is."""
+    _require_mongo_configured()
+    billing_db.ensure_billing_indexes()
+    db = billing_db.get_billing_db()
+    return billing_db.mongo_record_webhook_event(db, event_id, event_type)
 
 
 @app.post("/billing/checkout-session")
@@ -797,18 +996,38 @@ def create_checkout_session(request: Request, payload: CheckoutSessionRequest):
     if not STRIPE_SECRET_KEY:
         raise HTTPException(status_code=500, detail="Stripe is niet geconfigureerd")
     price_id = get_price_id_for_plan(payload.plan)
+    billing_trace(
+        "checkout_session:start",
+        email=_mask_email_for_log(payload.email),
+        plan=payload.plan,
+        price_id=price_id,
+    )
     try:
         session = stripe.checkout.Session.create(
             mode="subscription",
             payment_method_types=["card"],
             line_items=[{"price": price_id, "quantity": 1}],
             customer_email=payload.email,
-            success_url=f"{APP_BASE_URL}/?checkout=success",
-            cancel_url=f"{APP_BASE_URL}/?checkout=cancelled",
+            metadata={"plan": payload.plan},
+            success_url=f"{APP_BASE_URL.rstrip('/')}/?checkout=success&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{APP_BASE_URL.rstrip('/')}/?checkout=cancelled",
         )
         logging.info(f"Stripe checkout session created: id={session.id} email={payload.email} plan={payload.plan}")
+        billing_trace(
+            "checkout_session:stripe_ok",
+            stripe_session_id=session.id,
+            email=_mask_email_for_log(payload.email),
+            plan=payload.plan,
+            heeft_checkout_url=bool(session.url),
+        )
         return {"checkout_url": session.url, "session_id": session.id}
     except Exception as exc:
+        billing_trace(
+            "checkout_session:stripe_fout",
+            email=_mask_email_for_log(payload.email),
+            plan=payload.plan,
+            fout=str(exc)[:300],
+        )
         logging.exception(f"Stripe checkout failed for email={payload.email} plan={payload.plan}")
         raise HTTPException(status_code=400, detail=f"Stripe checkout mislukt: {exc}")
 
@@ -818,47 +1037,131 @@ def create_checkout_session(request: Request, payload: CheckoutSessionRequest):
 def create_portal_session(request: Request, payload: PortalSessionRequest):
     if not STRIPE_SECRET_KEY:
         raise HTTPException(status_code=500, detail="Stripe is niet geconfigureerd")
+    billing_trace("portal_session:start", email=_mask_email_for_log(payload.email))
     try:
         customers = stripe.Customer.list(email=payload.email, limit=1)
         if not customers.data:
+            billing_trace(
+                "portal_session:geen_stripe_klant",
+                email=_mask_email_for_log(payload.email),
+            )
             raise HTTPException(status_code=404, detail="Geen Stripe-klant gevonden voor dit e-mailadres")
         portal = stripe.billing_portal.Session.create(
             customer=customers.data[0].id,
-            return_url=APP_BASE_URL,
+            return_url=APP_BASE_URL.rstrip("/"),
         )
         logging.info(f"Stripe portal session created for email={payload.email}")
+        billing_trace(
+            "portal_session:stripe_ok",
+            email=_mask_email_for_log(payload.email),
+            customer_id_tail=customers.data[0].id[-10:] if customers.data[0].id else "",
+            heeft_portal_url=bool(portal.url),
+        )
         return {"portal_url": portal.url}
     except HTTPException:
         raise
     except Exception as exc:
+        billing_trace(
+            "portal_session:fout",
+            email=_mask_email_for_log(payload.email),
+            fout=str(exc)[:300],
+        )
         logging.exception(f"Stripe portal failed for email={payload.email}")
         raise HTTPException(status_code=400, detail=f"Stripe portal mislukt: {exc}")
+
+
+@app.get("/billing/checkout-success")
+@limiter.limit("30/minute")
+def billing_checkout_success(request: Request, session_id: str = Query(..., min_length=10, max_length=200)):
+    """Poll na redirect van Stripe: levert API-sleutel zodra webhook + Mongo klaar zijn."""
+    if not STRIPE_SECRET_KEY:
+        raise HTTPException(status_code=500, detail="Stripe is niet geconfigureerd")
+    sid = session_id.strip()
+    if not sid.startswith("cs_"):
+        raise HTTPException(status_code=400, detail="Ongeldige checkout-sessie")
+    try:
+        sess = stripe.checkout.Session.retrieve(sid)
+    except Exception as exc:
+        logging.warning("checkout-success retrieve failed: %s", exc)
+        raise HTTPException(status_code=400, detail="Sessie niet gevonden of verlopen")
+    plain = _stripe_to_plain(sess)
+    if not isinstance(plain, dict):
+        raise HTTPException(status_code=500, detail="Kon Stripe-sessie niet verwerken")
+    if plain.get("mode") != "subscription":
+        raise HTTPException(status_code=400, detail="Geen abonnements-checkout")
+    if plain.get("payment_status") != "paid" or plain.get("status") != "complete":
+        return {
+            "ready": False,
+            "message": "Betaling nog niet afgerond. Vernieuw over een moment.",
+        }
+    email = _checkout_session_email(plain)
+    if not email:
+        raise HTTPException(status_code=400, detail="Geen e-mailadres op de sessie")
+    _require_mongo_configured()
+    billing_db.ensure_billing_indexes()
+    db = billing_db.get_billing_db()
+    api_key_obj = billing_db.mongo_find_api_key_by_email(db, email)
+    if not api_key_obj:
+        return {
+            "ready": False,
+            "message": "Je betaling wordt gekoppeld. Vernieuw over enkele seconden.",
+        }
+    sub = billing_db.mongo_find_latest_subscription_by_api_key_id(db, api_key_obj["_id"])
+    active = bool(sub and sub.get("status") in {"active", "trialing"})
+    if not active:
+        return {
+            "ready": False,
+            "message": "Abonnement wordt nog geactiveerd. Vernieuw over enkele seconden.",
+        }
+    return {
+        "ready": True,
+        "api_key": api_key_obj["api_key"],
+        "email_masked": _mask_email_public(str(email)),
+        "billing_email": str(email),
+        "plan": sub.get("plan_name") if sub else None,
+    }
 
 
 @app.get("/billing/status")
 @limiter.limit("30/minute")
 def billing_status(request: Request, key: str = Security(api_key_header)):
-    session = SessionLocal()
-    try:
-        api_key = session.query(APIKey).filter_by(api_key=key).first()
-        if not api_key:
-            raise HTTPException(status_code=404, detail="API-sleutel niet gevonden")
-        subscription = (
-            session.query(BillingSubscription)
-            .filter_by(api_key_id=api_key.id)
-            .order_by(BillingSubscription.updated_at.desc())
-            .first()
+    billing_trace("billing_status:request", api_key=_mask_api_key_for_log(key))
+    _require_mongo_configured()
+    billing_db.ensure_billing_indexes()
+    db = billing_db.get_billing_db()
+    api_key = billing_db.mongo_find_api_key_by_secret(db, key)
+    if not api_key:
+        billing_trace("billing_status:onbekende_sleutel", api_key=_mask_api_key_for_log(key))
+        raise HTTPException(status_code=404, detail="API-sleutel niet gevonden")
+    subscription = billing_db.mongo_find_latest_subscription_by_api_key_id(db, api_key["_id"])
+    if not subscription:
+        billing_trace(
+            "billing_status:geen_subscription_row",
+            email=_mask_email_for_log(api_key.get("user_email")),
         )
-        if not subscription:
-            return {"active": False, "plan": "free", "status": "inactive"}
         return {
-            "active": subscription.status in {"active", "trialing"},
-            "plan": subscription.plan_name,
-            "status": subscription.status,
-            "current_period_end": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+            "active": False,
+            "plan": "free",
+            "status": "inactive",
+            "email_masked": _mask_email_public(str(api_key.get("user_email") or "")),
         }
-    finally:
-        session.close()
+    cpe = subscription.get("current_period_end")
+    raw_email = str(api_key.get("user_email") or "")
+    body = {
+        "active": subscription.get("status") in {"active", "trialing"},
+        "plan": subscription.get("plan_name"),
+        "status": subscription.get("status"),
+        "current_period_end": cpe.isoformat() if hasattr(cpe, "isoformat") else (cpe if isinstance(cpe, str) else None),
+        "email_masked": _mask_email_public(raw_email) if raw_email else "",
+    }
+    billing_trace(
+        "billing_status:response",
+        email=_mask_email_for_log(api_key.get("user_email")),
+        active=body["active"],
+        plan=body["plan"],
+        status=body["status"],
+    )
+    return body
 
 
 @app.get("/billing/plans")
@@ -874,19 +1177,90 @@ def billing_plans(request: Request):
         },
         "pro_monthly": {
             "price_id": STRIPE_PRICE_ID_PRO_MONTHLY or "configure_in_env",
-            "daily_request_limit": "hoog / op planbasis",
+            "daily_request_limit": PRO_TIER_DAILY_LIMIT,
             "requires_api_key": True,
         },
         "pro_yearly": {
             "price_id": STRIPE_PRICE_ID_PRO_YEARLY or "configure_in_env",
-            "daily_request_limit": "hoog / op planbasis",
+            "daily_request_limit": PRO_TIER_DAILY_LIMIT,
             "requires_api_key": True,
         },
         "billing_enforced": BILLING_ENFORCED,
     }
 
+
+def _stripe_to_plain(value: Any) -> Any:
+    """Stripe Webhook.construct_event returns nested StripeObject; normalize for dict-style .get()."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, list):
+        return [_stripe_to_plain(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _stripe_to_plain(v) for k, v in value.items()}
+    raw = getattr(value, "_data", None)
+    if isinstance(raw, dict):
+        return {k: _stripe_to_plain(v) for k, v in raw.items()}
+    return value
+
+
+def _normalize_stripe_expandable_id(val: Any) -> Optional[str]:
+    if val is None:
+        return None
+    if isinstance(val, str):
+        return val
+    if isinstance(val, dict) and val.get("id"):
+        return str(val["id"])
+    return None
+
+
+def _webhook_subscription_id_from_object(data: dict) -> Optional[str]:
+    """Resolve Stripe subscription id from webhook object; never use invoice id as subscription id."""
+    if not isinstance(data, dict):
+        return None
+    obj = data.get("object")
+    sub = _normalize_stripe_expandable_id(data.get("subscription"))
+    if sub:
+        return sub
+    if obj == "subscription":
+        return _normalize_stripe_expandable_id(data.get("id"))
+    if obj == "invoice" and data.get("id") and STRIPE_SECRET_KEY:
+        try:
+            inv = stripe.Invoice.retrieve(str(data["id"]))
+            inv_plain = _stripe_to_plain(inv)
+            if isinstance(inv_plain, dict):
+                return _normalize_stripe_expandable_id(inv_plain.get("subscription"))
+        except Exception as ex:
+            billing_trace("stripe_webhook:invoice_subscription_lookup", err=str(ex)[:200])
+        return None
+    return None
+
+
+def _mask_email_public(email: str) -> str:
+    if not email or "@" not in email:
+        return ""
+    local, _, domain = email.partition("@")
+    if not local:
+        return f"***@{domain}"
+    if len(local) <= 2:
+        return f"{local[0]}***@{domain}"
+    return f"{local[0]}***{local[-1]}@{domain}"
+
+
+def _checkout_session_email(data: dict) -> Optional[str]:
+    """Stripe zet niet altijd `customer_email`; val terug op customer_details.email."""
+    if not isinstance(data, dict):
+        return None
+    em = data.get("customer_email")
+    if em:
+        return str(em)
+    details = data.get("customer_details")
+    if isinstance(details, dict) and details.get("email"):
+        return str(details["email"])
+    return None
+
+
 @app.post("/stripe/webhook")
-@limiter.limit("5/minute")
+@limiter.limit("500/minute")
 async def stripe_webhook(request: Request):
     if not STRIPE_WEBHOOK_SECRET:
         raise HTTPException(status_code=500, detail="STRIPE_WEBHOOK_SECRET ontbreekt")
@@ -897,91 +1271,200 @@ async def stripe_webhook(request: Request):
             payload, sig_header, STRIPE_WEBHOOK_SECRET
         )
     except Exception as e:
+        billing_trace("stripe_webhook:handtekening_mislukt", fout=str(e)[:200])
         logging.warning(f"Stripe webhook signature verify failed: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-    session = SessionLocal()
-    try:
-        event_id = event.get("id")
-        event_type = event.get("type")
-        if not event_id or not event_type:
-            raise HTTPException(status_code=400, detail="Ongeldig Stripe event")
-        logging.info(f"Stripe webhook received: id={event_id} type={event_type}")
-        if record_processed_event(session, event_id, event_type):
-            return {"status": "al_verwerkt"}
+    event = _stripe_to_plain(event)
+    if not isinstance(event, dict):
+        raise HTTPException(status_code=500, detail="Ongeldig Stripe event-formaat")
 
-        data = event.get("data", {}).get("object", {})
-        email = data.get("customer_email")
-        stripe_customer_id = data.get("customer")
-        stripe_subscription_id = data.get("subscription") or data.get("id")
-        plan_name = "pro"
-        stripe_price_id = None
-        items = data.get("items", {}).get("data", [])
-        if items and items[0].get("price"):
-            stripe_price_id = items[0]["price"].get("id")
-            if stripe_price_id == STRIPE_PRICE_ID_PRO_YEARLY:
-                plan_name = "pro_yearly"
-            else:
-                plan_name = "pro_monthly"
+    _require_mongo_configured()
+    billing_db.ensure_billing_indexes()
+    db = billing_db.get_billing_db()
 
-        if event_type == "checkout.session.completed" and email:
-            api_key_obj = session.query(APIKey).filter_by(user_email=email).first()
-            if not api_key_obj:
-                api_key_obj = APIKey(user_email=email, api_key=str(uuid.uuid4()), active=True)
-                session.add(api_key_obj)
-                session.commit()
-                session.refresh(api_key_obj)
-            else:
-                api_key_obj.active = True
-                session.commit()
+    event_id = event.get("id")
+    event_type = event.get("type")
+    if not event_id or not event_type:
+        raise HTTPException(status_code=400, detail="Ongeldig Stripe event")
+    logging.info(f"Stripe webhook received: id={event_id} type={event_type}")
+    billing_trace("stripe_webhook:parsed", event_id=event_id, event_type=event_type)
+    if record_processed_event(event_id, event_type):
+        billing_trace("stripe_webhook:duplicate_skip", event_id=event_id, event_type=event_type)
+        return {"status": "al_verwerkt"}
 
-            subscription = (
-                session.query(BillingSubscription)
-                .filter_by(api_key_id=api_key_obj.id)
-                .order_by(BillingSubscription.updated_at.desc())
-                .first()
+    data = event.get("data", {}).get("object", {})
+    if not isinstance(data, dict):
+        data = {}
+
+    stripe_customer_id = data.get("customer")
+    if isinstance(stripe_customer_id, dict) and stripe_customer_id.get("id"):
+        stripe_customer_id = stripe_customer_id["id"]
+    stripe_subscription_id = _webhook_subscription_id_from_object(data)
+
+    billing_trace(
+        "stripe_webhook:object_samenvatting",
+        event_type=event_type,
+        object_type=data.get("object"),
+        object_id=data.get("id"),
+        mode=data.get("mode"),
+        heeft_customer=bool(stripe_customer_id),
+        heeft_subscription_id=bool(stripe_subscription_id),
+    )
+
+    email: Optional[str] = None
+    if event_type == "checkout.session.completed":
+        email = _checkout_session_email(data)
+        if not email and stripe_customer_id and isinstance(stripe_customer_id, str) and STRIPE_SECRET_KEY:
+            billing_trace(
+                "stripe_webhook:checkout_email_uit_customer_halen",
+                customer_tail=stripe_customer_id[-12:],
             )
-            if not subscription:
-                subscription = BillingSubscription(
-                    api_key_id=api_key_obj.id,
-                    stripe_customer_id=stripe_customer_id,
-                    stripe_subscription_id=stripe_subscription_id,
-                    stripe_price_id=stripe_price_id,
-                    plan_name=plan_name,
-                    status="active",
-                )
-                session.add(subscription)
+            try:
+                cust = stripe.Customer.retrieve(stripe_customer_id)
+                email = getattr(cust, "email", None) or None
+                if email:
+                    billing_trace(
+                        "stripe_webhook:email_via_customer_ok",
+                        email=_mask_email_for_log(str(email)),
+                    )
+            except Exception as ex:
+                billing_trace("stripe_webhook:customer_retrieve_fout", err=str(ex)[:200])
+
+    plan_name = "pro"
+    stripe_price_id = None
+    items: list[Any] = []
+    items_obj = data.get("items")
+    if isinstance(items_obj, dict):
+        items = list(items_obj.get("data") or [])
+    elif isinstance(items_obj, list):
+        items = list(items_obj)
+    if not items:
+        line_obj = data.get("line_items")
+        if isinstance(line_obj, dict):
+            items = list(line_obj.get("data") or [])
+        elif isinstance(line_obj, list):
+            items = list(line_obj)
+    if items and isinstance(items[0], dict):
+        price_obj = items[0].get("price")
+        if isinstance(price_obj, dict):
+            stripe_price_id = price_obj.get("id")
+        elif isinstance(price_obj, str):
+            stripe_price_id = price_obj
+        if stripe_price_id == STRIPE_PRICE_ID_PRO_YEARLY:
+            plan_name = "pro_yearly"
+        else:
+            plan_name = "pro_monthly"
+
+    md = data.get("metadata")
+    if isinstance(md, dict):
+        mp = md.get("plan")
+        if mp in ("pro_monthly", "pro_yearly"):
+            plan_name = mp
+            if not stripe_price_id:
+                stripe_price_id = (
+                    STRIPE_PRICE_ID_PRO_YEARLY if mp == "pro_yearly" else STRIPE_PRICE_ID_PRO_MONTHLY
+                ) or None
+
+    if event_type == "checkout.session.completed":
+        if not email:
+            billing_trace(
+                "stripe_webhook:checkout_completed_GEEN_EMAIL",
+                session_id=data.get("id"),
+                customer_id=str(stripe_customer_id) if stripe_customer_id else "",
+            )
+        else:
+            billing_trace(
+                "stripe_webhook:checkout_verwerken",
+                email=_mask_email_for_log(email),
+                plan_name=plan_name,
+                price_id=stripe_price_id or "(onbekend)",
+                subscription_id_tail=str(stripe_subscription_id)[-14:] if stripe_subscription_id else "",
+            )
+            api_key_obj = billing_db.mongo_find_api_key_by_email(db, email)
+            is_new_key = api_key_obj is None
+            if not api_key_obj:
+                api_key_obj = billing_db.mongo_insert_api_key(db, email, str(uuid.uuid4()), True)
             else:
-                subscription.stripe_customer_id = stripe_customer_id or subscription.stripe_customer_id
-                subscription.stripe_subscription_id = stripe_subscription_id or subscription.stripe_subscription_id
-                subscription.stripe_price_id = stripe_price_id or subscription.stripe_price_id
-                subscription.plan_name = plan_name
-                subscription.status = "active"
-                subscription.updated_at = datetime.utcnow()
-            session.commit()
+                billing_db.mongo_set_api_key_active_by_email(db, email, True)
+                api_key_obj = billing_db.mongo_find_api_key_by_email(db, email)
 
-        elif event_type in {"customer.subscription.updated", "invoice.paid"}:
-            if stripe_subscription_id:
-                subscription = session.query(BillingSubscription).filter_by(stripe_subscription_id=stripe_subscription_id).first()
-                if subscription:
-                    subscription.status = "active"
-                    subscription.updated_at = datetime.utcnow()
-                    session.commit()
+            billing_db.mongo_upsert_subscription_after_checkout(
+                db,
+                api_key_obj["_id"],
+                stripe_customer_id,
+                stripe_subscription_id,
+                stripe_price_id,
+                plan_name,
+            )
+            sub_after = billing_db.mongo_find_latest_subscription_by_api_key_id(db, api_key_obj["_id"])
+            billing_trace(
+                "stripe_webhook:checkout_db_ok",
+                email=_mask_email_for_log(email),
+                nieuwe_api_key=is_new_key,
+                api_key_id=str(api_key_obj["_id"]),
+                subscription_status=(sub_after or {}).get("status", ""),
+            )
 
-        elif event_type in {"invoice.payment_failed", "customer.subscription.deleted"}:
-            if stripe_subscription_id:
-                subscription = session.query(BillingSubscription).filter_by(stripe_subscription_id=stripe_subscription_id).first()
-                if subscription:
-                    subscription.status = "past_due" if event_type == "invoice.payment_failed" else "canceled"
-                    subscription.updated_at = datetime.utcnow()
-                    session.commit()
-                    api_key_obj = session.query(APIKey).filter_by(id=subscription.api_key_id).first()
-                    if api_key_obj:
-                        api_key_obj.active = event_type != "customer.subscription.deleted"
-                        session.commit()
-        return {"status": "succes"}
-    finally:
-        session.close()
+    elif event_type in {"customer.subscription.updated", "invoice.paid"}:
+        billing_trace(
+            "stripe_webhook:subscription_actief_houden",
+            event_type=event_type,
+            subscription_id_tail=str(stripe_subscription_id)[-14:] if stripe_subscription_id else "",
+        )
+        if stripe_subscription_id:
+            subscription = billing_db.mongo_find_subscription_by_stripe_sub_id(db, stripe_subscription_id)
+            if subscription:
+                db.billing_subscriptions.update_one(
+                    {"_id": subscription["_id"]},
+                    {"$set": {"status": "active", "updated_at": datetime.utcnow()}},
+                )
+                billing_trace(
+                    "stripe_webhook:subscription_geüpdatet",
+                    db_subscription_id=str(subscription["_id"]),
+                )
+            else:
+                billing_trace(
+                    "stripe_webhook:subscription_niet_in_db",
+                    subscription_id_tail=str(stripe_subscription_id)[-14:],
+                )
+
+    elif event_type in {"invoice.payment_failed", "customer.subscription.deleted"}:
+        billing_trace(
+            "stripe_webhook:negatieve_gebeurtenis",
+            event_type=event_type,
+            subscription_id_tail=str(stripe_subscription_id)[-14:] if stripe_subscription_id else "",
+        )
+        if stripe_subscription_id:
+            subscription = billing_db.mongo_find_subscription_by_stripe_sub_id(db, stripe_subscription_id)
+            if subscription:
+                new_status = "past_due" if event_type == "invoice.payment_failed" else "canceled"
+                billing_db.mongo_subscription_set_status(db, stripe_subscription_id, new_status)
+                subscription = billing_db.mongo_find_subscription_by_stripe_sub_id(db, stripe_subscription_id)
+                api_key_obj = None
+                aid = subscription.get("api_key_id") if subscription else None
+                if isinstance(aid, ObjectId):
+                    api_key_obj = billing_db.mongo_find_api_key_by_id(db, aid)
+                    billing_db.mongo_set_api_key_active_by_id(
+                        db,
+                        aid,
+                        event_type != "customer.subscription.deleted",
+                    )
+                billing_trace(
+                    "stripe_webhook:subscription_achterstallig_of_beeindigd",
+                    nieuwe_status=new_status,
+                    api_key_actief=bool(api_key_obj and event_type != "customer.subscription.deleted"),
+                )
+            else:
+                billing_trace(
+                    "stripe_webhook:negatief_event_geen_db_row",
+                    subscription_id_tail=str(stripe_subscription_id)[-14:],
+                )
+    else:
+        billing_trace("stripe_webhook:geen_handler_voor_event_type", event_type=event_type)
+
+    billing_trace("stripe_webhook:klaar", event_id=event_id, event_type=event_type)
+    return {"status": "succes"}
 
 
 @app.get("/billing/debug/config")
@@ -1004,6 +1487,8 @@ def billing_debug_config(request: Request):
         "stripe_price_id_pro_monthly": STRIPE_PRICE_ID_PRO_MONTHLY or "",
         "stripe_price_id_pro_yearly_set": bool(STRIPE_PRICE_ID_PRO_YEARLY),
         "stripe_price_id_pro_yearly": STRIPE_PRICE_ID_PRO_YEARLY or "",
+        "mongodb_uri_set": bool(billing_db.get_mongo_uri()),
+        "mongodb_db_name": billing_db.get_mongo_db_name(),
     }
 
 
@@ -1031,30 +1516,27 @@ def billing_debug_email_status(request: Request, email: str):
     Enabled only when DEBUG_BILLING=true and localhost access.
     """
     _ensure_local_billing_debug_access(request)
-    session = SessionLocal()
-    try:
-        api_key = session.query(APIKey).filter_by(user_email=email).first()
-        if not api_key:
-            return {"email": email, "exists": False}
-        subscription = (
-            session.query(BillingSubscription)
-            .filter_by(api_key_id=api_key.id)
-            .order_by(BillingSubscription.updated_at.desc())
-            .first()
-        )
-        return {
-            "email": email,
-            "exists": True,
-            "api_key_active": bool(api_key.active),
-            "api_key_masked": _mask_secret(api_key.api_key, visible=6),
-            "subscription": None if not subscription else {
-                "plan_name": subscription.plan_name,
-                "status": subscription.status,
-                "stripe_customer_id": subscription.stripe_customer_id,
-                "stripe_subscription_id": subscription.stripe_subscription_id,
-                "stripe_price_id": subscription.stripe_price_id,
-                "current_period_end": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
-            },
-        }
-    finally:
-        session.close()
+    _require_mongo_configured()
+    billing_db.ensure_billing_indexes()
+    db = billing_db.get_billing_db()
+    api_key = billing_db.mongo_find_api_key_by_email(db, email)
+    if not api_key:
+        return {"email": email, "exists": False}
+    subscription = billing_db.mongo_find_latest_subscription_by_api_key_id(db, api_key["_id"])
+    cpe = (subscription or {}).get("current_period_end")
+    return {
+        "email": email,
+        "exists": True,
+        "api_key_active": bool(api_key.get("active")),
+        "api_key_masked": _mask_secret(api_key.get("api_key", ""), visible=6),
+        "subscription": None
+        if not subscription
+        else {
+            "plan_name": subscription.get("plan_name"),
+            "status": subscription.get("status"),
+            "stripe_customer_id": subscription.get("stripe_customer_id"),
+            "stripe_subscription_id": subscription.get("stripe_subscription_id"),
+            "stripe_price_id": subscription.get("stripe_price_id"),
+            "current_period_end": cpe.isoformat() if hasattr(cpe, "isoformat") else (cpe if isinstance(cpe, str) else None),
+        },
+    }

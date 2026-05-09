@@ -1,0 +1,109 @@
+    <script src="/site/script.js" defer></script>
+    <script>
+    (function () {
+        function byId(id) { return document.getElementById(id); }
+
+        function showMsg(id, msg, isError) {
+            var el = byId(id);
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.textContent = msg;
+            if (isError) {
+                el.classList.remove('text-emerald-700');
+                el.classList.add('text-red-600');
+            } else {
+                el.classList.remove('text-red-600');
+                el.classList.add('text-emerald-700');
+            }
+        }
+
+        function postJson(url, payload, cb) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                var data = null;
+                try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) {}
+                cb(xhr.status, data);
+            };
+            xhr.onerror = function () { cb(0, null); };
+            xhr.send(JSON.stringify(payload));
+        }
+
+        function fallbackCheckout(plan) {
+            var emailInput = byId('checkoutEmail');
+            var email = emailInput ? String(emailInput.value || '').trim() : '';
+            if (!email || email.indexOf('@') === -1) {
+                showMsg('checkoutError', 'Vul een geldig e-mailadres in voor Checkout.', true);
+                if (emailInput) emailInput.focus();
+                return;
+            }
+            showMsg('checkoutError', 'Doorsturen naar Stripe Checkout...', false);
+            postJson('/billing/checkout-session', { email: email, plan: plan }, function (status, data) {
+                if (status >= 200 && status < 300 && data && data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                    return;
+                }
+                var message = (data && (data.message || data.detail)) ? (data.message || data.detail) : ('Checkout mislukt (' + status + ').');
+                showMsg('checkoutError', String(message), true);
+            });
+        }
+
+        function fallbackPortal() {
+            var emailInput = byId('portalEmail');
+            var email = emailInput ? String(emailInput.value || '').trim() : '';
+            if (!email || email.indexOf('@') === -1) {
+                showMsg('portalError', 'Vul het e-mailadres in waarmee je Pro hebt afgenomen.', true);
+                if (emailInput) emailInput.focus();
+                return;
+            }
+            showMsg('portalError', 'Klantportaal openen...', false);
+            postJson('/billing/portal-session', { email: email }, function (status, data) {
+                if (status >= 200 && status < 300 && data && data.portal_url) {
+                    window.location.href = data.portal_url;
+                    return;
+                }
+                var message = (data && (data.message || data.detail)) ? (data.message || data.detail) : ('Portal mislukt (' + status + ').');
+                showMsg('portalError', String(message), true);
+            });
+        }
+
+        function bind() {
+            var m = byId('btnCheckoutMonthly');
+            var y = byId('btnCheckoutYearly');
+            var p = byId('btnPortal');
+            var mongoBtn = byId('btnMongoPing');
+            if (m) m.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_monthly'); };
+            if (y) y.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_yearly'); };
+            if (p) p.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackPortal(); };
+            if (mongoBtn) mongoBtn.onclick = function (e) {
+                if (e && e.preventDefault) e.preventDefault();
+                var out = byId('mongoPingOut');
+                if (out) {
+                    out.classList.remove('hidden');
+                    out.textContent = 'Bezig met verbinden…';
+                }
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/mongo-status', true);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState !== 4) return;
+                    var data = null;
+                    try { data = JSON.parse(xhr.responseText || '{}'); } catch (err) { data = null; }
+                    if (out) out.textContent = data ? JSON.stringify(data, null, 2) : xhr.responseText || '(geen antwoord)';
+                };
+                xhr.onerror = function () {
+                    if (out) out.textContent = '{"ok":false,"error":"Netwerkfout"}';
+                };
+                xhr.send();
+            };
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bind);
+        } else {
+            bind();
+        }
+    })();
+    </script>
