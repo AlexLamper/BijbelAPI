@@ -273,7 +273,6 @@
                             <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/billing/portal-session</code></td><td class="px-4 py-3">Open Stripe klantportaal</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/status</code></td><td class="px-4 py-3">Abonnementsstatus van API-key</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/plans</code></td><td class="px-4 py-3">Beschikbare prijsplannen</td></tr>
-                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/stripe/webhook</code></td><td class="px-4 py-3">Webhook endpoint voor Stripe events</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/secure-data</code></td><td class="px-4 py-3">Voorbeeld endpoint met verplichte API-key</td></tr>
                         </tbody>
                     </table>
@@ -306,7 +305,8 @@
                     <ul class="mb-6 space-y-2 text-sm text-slate-700">
                         <li class="flex gap-2"><span class="text-emerald-600">✓</span> Kern-API: verzen, passages, zoeken, dagtekst</li>
                         <li class="flex gap-2"><span class="text-emerald-600">✓</span> Geen creditcard</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Fair-use daglimiet per IP wanneer billing actief is</li>
+                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Maximaal <strong class="font-semibold text-slate-800">5.000 requests per dag</strong> per IP</li>
+                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Perfect voor testen en kleine projecten</li>
                     </ul>
                     <a href="/docs" class="mt-auto inline-flex justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
                         Start met de docs
@@ -320,7 +320,7 @@
                     <p class="mb-4 text-xs text-slate-500">per maand · maandelijks opzegbaar</p>
                     <p class="mb-4 flex-grow text-sm leading-relaxed text-slate-600">Volledige productiekracht met hogere limieten en API-sleutel na betaling.</p>
                     <ul class="mb-6 space-y-2 text-sm text-slate-700">
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Hogere requestlimieten</li>
+                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> <strong class="font-semibold text-slate-800">Onbeperkt aantal requests*</strong></li>
                         <li class="flex gap-2"><span class="text-emerald-600">✓</span> Stripe Customer Portal</li>
                         <li class="flex gap-2"><span class="text-emerald-600">✓</span> Prioriteit bij groei en support</li>
                     </ul>
@@ -336,6 +336,7 @@
                     <p class="mb-4 flex-grow text-sm leading-relaxed text-slate-600">Zelfde voordelen als maandelijks, met jaarpakket voor vaste teams en apps.</p>
                     <ul class="mb-6 space-y-2 text-sm text-slate-700">
                         <li class="flex gap-2"><span class="text-emerald-600">✓</span> Alles uit Pro maandelijks</li>
+                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> <strong class="font-semibold text-slate-800">Onbeperkt aantal requests*</strong></li>
                         <li class="flex gap-2"><span class="text-emerald-600">✓</span> Eén factuur per jaar</li>
                         <li class="flex gap-2"><span class="text-emerald-600">✓</span> Geschikt voor langlopende productie</li>
                     </ul>
@@ -343,6 +344,12 @@
                         Abonneer jaarlijks
                     </button>
                 </article>
+            </div>
+            <p class="mt-4 text-xs text-slate-500">
+                * Praktisch gezien ongelimiteerd. Er is een zeer hoge technische fair-use limiet voor platformstabiliteit, maar die is voor normaal gebruik vrijwel niet te bereiken.
+            </p>
+            <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <strong>Belangrijk:</strong> bij misbruik (zoals geautomatiseerde overbelasting, scraping op grote schaal of pogingen om limieten te omzeilen) kunnen requests worden beperkt, API-sleutels tijdelijk worden geblokkeerd of accounts worden geschorst om de stabiliteit van het platform te beschermen.
             </div>
 
             <p id="checkoutError" class="mt-4 hidden text-sm text-red-600" role="alert"></p>

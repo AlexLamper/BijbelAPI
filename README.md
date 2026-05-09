@@ -1,13 +1,13 @@
 # 📖 BijbelAPI
 
 <p>
-  <img src="https://img.shields.io/badge/Version-v1.0-blue?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-v1.2-blue?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/github/license/AlexLamper/BijbelAPI?style=for-the-badge" alt="License" />
   <img src="https://img.shields.io/github/issues/AlexLamper/BijbelAPI?style=for-the-badge" alt="Issues" />
 </p>
 
 **Dé #1 Nederlandse Bijbel API voor ontwikkelaars.**  
-A REST API for retrieving Bible texts and Dutch commentary data across multiple supported translations. Built for developers, theologians, students, churches, and digital Bible projects.
+Een REST API om Bijbelteksten en Nederlandstalige commentaargegevens op te vragen over meerdere ondersteunde vertalingen. Gebouwd voor ontwikkelaars, theologen, studenten, kerken en digitale Bijbelprojecten.
 
 ---
 
@@ -143,4 +143,4 @@ This API is licensed under the [MIT License](LICENSE).
 
 ## 📌 Version
 
-**Current Version**: `v1.1`
+**Current Version**: `v1.2`

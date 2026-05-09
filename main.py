@@ -147,9 +147,32 @@ COMMENTARY_SOURCE_ALIASES = {
 }
 
 def load_all_versions():
-    versions_dir = DATA_DIR if os.path.isdir(DATA_DIR) else DEFAULT_DATA_DIR
-    if versions_dir != DATA_DIR:
-        logging.warning(f"DATA_DIR '{DATA_DIR}' niet gevonden, fallback naar '{DEFAULT_DATA_DIR}'.")
+    candidate_dirs = []
+    for d in [DATA_DIR, DEFAULT_DATA_DIR]:
+        if d not in candidate_dirs:
+            candidate_dirs.append(d)
+
+    versions_dir = None
+    for d in candidate_dirs:
+        if not os.path.isdir(d):
+            continue
+        has_json = any(name.endswith(".json") for name in os.listdir(d))
+        if has_json:
+            versions_dir = d
+            break
+
+    if versions_dir is None:
+        # Keep previous behavior but with explicit warning: no usable data dir found.
+        versions_dir = DATA_DIR if os.path.isdir(DATA_DIR) else DEFAULT_DATA_DIR
+        logging.warning(
+            f"Geen bruikbare data-map met JSON-bestanden gevonden. "
+            f"Geprobeerd: {candidate_dirs}. Gebruik: '{versions_dir}'."
+        )
+    elif versions_dir != DATA_DIR:
+        logging.warning(
+            f"DATA_DIR '{DATA_DIR}' is leeg of onbruikbaar, fallback naar '{versions_dir}'."
+        )
+
     versions = {}
     if not os.path.isdir(versions_dir):
         logging.warning(f"Versions dir '{versions_dir}' not found.")
