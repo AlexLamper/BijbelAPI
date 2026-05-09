@@ -9,3 +9,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
+      - key: DATA_DIR
+        value: /opt/render/project/src/private-data

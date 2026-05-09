@@ -182,7 +182,7 @@
 
     <main>
         <section class="border-b border-slate-200 bg-white">
-            <div class="mx-auto grid max-w-7xl 2xl:max-w-[1600px] gap-12 px-6 md:px-8 2xl:px-6 py-16 md:grid-cols-2 md:py-20">
+            <div class="mx-auto grid max-w-7xl 2xl:max-w-[1600px] gap-12 px-6 md:px-8 2xl:px-6 md:grid-cols-2" style="padding-top: 7rem; padding-bottom: 7rem;">
                 <div>
                     <p class="mb-3 text-sm font-medium text-blue-700">Betrouwbaar en Nederlandstalig</p>
                     <h1 class="mb-5 text-4xl font-semibold leading-tight tracking-tight md:text-5xl xl:text-6xl">
@@ -201,14 +201,8 @@
                         </a>
                     </div>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
-                    <h2 class="mb-4 text-base font-semibold">Snel starten</h2>
-                    <ul class="space-y-3 text-sm text-slate-700">
-                        <li><span class="font-medium">Home:</span> <code class="rounded bg-white px-1">/</code></li>
-                        <li><span class="font-medium">Swagger:</span> <code class="rounded bg-white px-1">/docs</code></li>
-                        <li><span class="font-medium">ReDoc:</span> <code class="rounded bg-white px-1">/redoc</code></li>
-                        <li><span class="font-medium">Vers endpoint:</span> <code class="rounded bg-white px-1">/api/verse?book=Genesis&amp;chapter=1&amp;verse=1</code></li>
-                    </ul>
+                <div class="self-start overflow-hidden rounded-2xl" style="max-width: 520px; width: 100%; margin-left: auto;">
+                    <img src="/public/images/hero.png" alt="BijbelAPI hero illustratie" class="w-full object-cover" style="height: 320px; border-bottom-left-radius: 2.75rem; opacity: 0.93;" loading="eager" fetchpriority="high">
                 </div>
             </div>
         </section>
@@ -231,6 +225,21 @@
             </div>
         </section>
 
+        <section id="versions" class="border-y border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14 text-center">
+                <h2 class="mb-3 text-2xl font-semibold tracking-tight">Beschikbare vertalingen</h2>
+                <p class="mb-6 text-sm text-slate-600">
+                    Deze lijst wordt live geladen via <code class="rounded bg-slate-100 px-1">GET /api/versions</code>.
+                </p>
+                <div id="versionsLoading" class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                    Vertalingen laden...
+                </div>
+                <div id="versionsError" class="hidden rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"></div>
+                <pre id="versionsDebug" class="mt-3 hidden overflow-x-auto rounded-xl border border-slate-200 bg-slate-950 p-3 text-xs text-slate-100"></pre>
+                <div id="versionsGrid" class="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
+            </div>
+        </section>
+
         <section id="api" class="border-y border-slate-200 bg-white">
             <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
                 <h2 class="mb-3 text-2xl font-semibold tracking-tight">API-overzicht</h2>
@@ -245,11 +254,27 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/health</code></td><td class="px-4 py-3">Health check van de API</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/random</code></td><td class="px-4 py-3">Willekeurig vers ophalen</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/daytext</code></td><td class="px-4 py-3">Dagtekst op basis van datum of seed</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/verse</code></td><td class="px-4 py-3">Specifiek vers opvragen</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/passage</code></td><td class="px-4 py-3">Bereik van verzen opvragen</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/chapter</code></td><td class="px-4 py-3">Hele hoofdstuktekst ophalen</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/books</code></td><td class="px-4 py-3">Lijst met bijbelboeken</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/chapters</code></td><td class="px-4 py-3">Lijst met hoofdstukken per boek</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/verses</code></td><td class="px-4 py-3">Lijst met versnummers per hoofdstuk</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/search</code></td><td class="px-4 py-3">Zoeken in bijbeltekst</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/versions</code></td><td class="px-4 py-3">Beschikbare vertalingen + metadata</td></tr>
                             <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/commentary</code></td><td class="px-4 py-3">Nederlands commentaar op hoofdstuk of vers</td></tr>
                             <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/api/parse/reference</code></td><td class="px-4 py-3">Bijbelverwijzing parseren</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/parse/reference/{reference}</code></td><td class="px-4 py-3">Bijbelverwijzing parseren via URL</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/api/parse/references</code></td><td class="px-4 py-3">Meerdere verwijzingen parseren</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/billing/checkout-session</code></td><td class="px-4 py-3">Start Stripe Checkout voor Pro</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/billing/portal-session</code></td><td class="px-4 py-3">Open Stripe klantportaal</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/status</code></td><td class="px-4 py-3">Abonnementsstatus van API-key</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/plans</code></td><td class="px-4 py-3">Beschikbare prijsplannen</td></tr>
+                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/stripe/webhook</code></td><td class="px-4 py-3">Webhook endpoint voor Stripe events</td></tr>
+                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/secure-data</code></td><td class="px-4 py-3">Voorbeeld endpoint met verplichte API-key</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -269,6 +294,7 @@
                 <p class="mt-1 text-xs text-slate-500">Zelfde adres voor je Stripe-factuur en je API-account. Vereist voor Pro.</p>
                 <input type="email" id="checkoutEmail" name="checkoutEmail" autocomplete="email" placeholder="jij@voorbeeld.nl"
                     class="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600">
+                <p id="checkoutHint" class="mt-2 text-xs text-amber-700">Vul eerst een geldig e-mailadres in om te kunnen betalen.</p>
             </div>
 
             <div class="grid gap-5 lg:grid-cols-3">
@@ -320,6 +346,7 @@
             </div>
 
             <p id="checkoutError" class="mt-4 hidden text-sm text-red-600" role="alert"></p>
+            <pre id="billingDebugLog" class="mt-3 hidden max-h-52 overflow-auto rounded-xl border border-slate-200 bg-slate-950 p-3 text-xs text-slate-100"></pre>
 
             <div class="mt-12 rounded-xl border border-slate-200 bg-slate-50 p-6 md:flex md:items-end md:justify-between md:gap-8">
                 <div class="max-w-lg">
@@ -361,8 +388,8 @@
 
         <section id="veelgestelde-vragen" class="border-y border-slate-200 bg-white">
             <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
-                <h2 class="mb-8 text-2xl font-semibold tracking-tight">Veelgestelde vragen</h2>
-                <div class="faq-accordion-list max-w-3xl space-y-3">
+                <h2 class="mb-8 text-center text-2xl font-semibold tracking-tight">Veelgestelde vragen</h2>
+                <div class="faq-accordion-list mx-auto max-w-3xl space-y-3">
                     <details class="faq-accordion group rounded-xl border border-slate-200 bg-white open:border-slate-300 open:shadow-sm">
                         <summary class="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left text-base font-semibold text-slate-900 hover:bg-slate-50">Wat is BijbelAPI?<span class="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">▼</span></summary>
                         <div class="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-relaxed text-slate-600">BijbelAPI is een Nederlandstalige REST API waarmee ontwikkelaars Bijbelteksten in JSON kunnen opvragen, inclusief onder andere verzen, passages, dagtekst en zoeken. Er is OpenAPI-documentatie op /docs.</div>
@@ -472,6 +499,186 @@
         </div>
     </footer>
 
+    <script>
+    (function () {
+        function esc(v) {
+            return String(v)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function stripHtml(v) {
+            return String(v || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function renderVersions(list) {
+            var loadingEl = document.getElementById('versionsLoading');
+            var errorEl = document.getElementById('versionsError');
+            var gridEl = document.getElementById('versionsGrid');
+            if (!loadingEl || !errorEl || !gridEl) return;
+            loadingEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+
+            var html = '';
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i] || {};
+                var key = esc(item.key || '-');
+                var name = esc(item.name || item.key || '-');
+                var shortname = esc(item.shortname || '-');
+                var module = esc(item.module || '-');
+                var lang = esc(item.lang || '-');
+                var year = esc(item.year || '-');
+                var description = esc(stripHtml(item.description || 'Geen beschrijving beschikbaar.'));
+                var endpoint = esc('/api/verse?book=Genesis&chapter=1&verse=1&version=' + (item.key || ''));
+                html += ''
+                    + '<article class="flex h-full flex-col items-center rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">'
+                    + '<div class="mb-3 flex items-start justify-between gap-3">'
+                    + '<h3 class="text-base font-semibold text-slate-900">' + name + '</h3>'
+                    + '<code class="shrink-0 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">' + key + '</code>'
+                    + '</div>'
+                    + '<div class="mb-3 flex flex-wrap justify-center gap-2 text-xs">'
+                    + '<span class="rounded-md bg-slate-200/70 px-2 py-1 text-slate-700"><span class="font-medium text-slate-500">shortname</span> ' + shortname + '</span>'
+                    + '<span class="rounded-md bg-slate-200/70 px-2 py-1 text-slate-700"><span class="font-medium text-slate-500">module</span> ' + module + '</span>'
+                    + '<span class="rounded-md bg-slate-200/70 px-2 py-1 text-slate-700"><span class="font-medium text-slate-500">lang</span> ' + lang + '</span>'
+                    + '<span class="rounded-md bg-slate-200/70 px-2 py-1 text-slate-700"><span class="font-medium text-slate-500">jaar</span> ' + year + '</span>'
+                    + '</div>'
+                    + '<p class="mb-4 flex-grow text-sm leading-relaxed text-slate-600">' + description + '</p>'
+                    + '<p class="text-xs text-slate-500">Voorbeeld endpoint:</p>'
+                    + '<code class="mt-1 block max-w-full overflow-x-auto rounded bg-white px-2 py-1 text-xs text-slate-700">' + endpoint + '</code>'
+                    + '</article>';
+            }
+            gridEl.innerHTML = html;
+        }
+
+        function showVersionsError(msg) {
+            var loadingEl = document.getElementById('versionsLoading');
+            var errorEl = document.getElementById('versionsError');
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (errorEl) {
+                errorEl.classList.remove('hidden');
+                errorEl.textContent = msg || 'Kon beschikbare vertalingen momenteel niet laden.';
+            }
+        }
+
+        function loadVersionsCompat() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/versions', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    showVersionsError('Kon beschikbare vertalingen momenteel niet laden.');
+                    return;
+                }
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (!Array.isArray(data)) throw new Error('Invalid payload');
+                    renderVersions(data);
+                } catch (e) {
+                    showVersionsError('Kon beschikbare vertalingen momenteel niet laden.');
+                }
+            };
+            xhr.onerror = function () {
+                showVersionsError('Kon beschikbare vertalingen momenteel niet laden.');
+            };
+            xhr.send();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadVersionsCompat);
+        } else {
+            loadVersionsCompat();
+        }
+    })();
+    </script>
     <script src="/site/script.js" defer></script>
+    <script>
+    (function () {
+        function byId(id) { return document.getElementById(id); }
+
+        function showMsg(id, msg, isError) {
+            var el = byId(id);
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.textContent = msg;
+            if (isError) {
+                el.classList.remove('text-emerald-700');
+                el.classList.add('text-red-600');
+            } else {
+                el.classList.remove('text-red-600');
+                el.classList.add('text-emerald-700');
+            }
+        }
+
+        function postJson(url, payload, cb) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                var data = null;
+                try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) {}
+                cb(xhr.status, data);
+            };
+            xhr.onerror = function () { cb(0, null); };
+            xhr.send(JSON.stringify(payload));
+        }
+
+        function fallbackCheckout(plan) {
+            var emailInput = byId('checkoutEmail');
+            var email = emailInput ? String(emailInput.value || '').trim() : '';
+            if (!email || email.indexOf('@') === -1) {
+                showMsg('checkoutError', 'Vul een geldig e-mailadres in voor Checkout.', true);
+                if (emailInput) emailInput.focus();
+                return;
+            }
+            showMsg('checkoutError', 'Doorsturen naar Stripe Checkout...', false);
+            postJson('/billing/checkout-session', { email: email, plan: plan }, function (status, data) {
+                if (status >= 200 && status < 300 && data && data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                    return;
+                }
+                var message = (data && (data.message || data.detail)) ? (data.message || data.detail) : ('Checkout mislukt (' + status + ').');
+                showMsg('checkoutError', String(message), true);
+            });
+        }
+
+        function fallbackPortal() {
+            var emailInput = byId('portalEmail');
+            var email = emailInput ? String(emailInput.value || '').trim() : '';
+            if (!email || email.indexOf('@') === -1) {
+                showMsg('portalError', 'Vul het e-mailadres in waarmee je Pro hebt afgenomen.', true);
+                if (emailInput) emailInput.focus();
+                return;
+            }
+            showMsg('portalError', 'Klantportaal openen...', false);
+            postJson('/billing/portal-session', { email: email }, function (status, data) {
+                if (status >= 200 && status < 300 && data && data.portal_url) {
+                    window.location.href = data.portal_url;
+                    return;
+                }
+                var message = (data && (data.message || data.detail)) ? (data.message || data.detail) : ('Portal mislukt (' + status + ').');
+                showMsg('portalError', String(message), true);
+            });
+        }
+
+        function bind() {
+            var m = byId('btnCheckoutMonthly');
+            var y = byId('btnCheckoutYearly');
+            var p = byId('btnPortal');
+            if (m) m.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_monthly'); };
+            if (y) y.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_yearly'); };
+            if (p) p.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackPortal(); };
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bind);
+        } else {
+            bind();
+        }
+    })();
+    </script>
 </body>
 </html>

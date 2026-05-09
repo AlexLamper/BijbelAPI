@@ -31,6 +31,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 
 # Define Base Directory for absolute paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DATA_DIR = os.path.join(BASE_DIR, "data")
+DATA_DIR = os.getenv("DATA_DIR", DEFAULT_DATA_DIR)
 
 app = FastAPI(
     title="BijbelAPI",
@@ -76,6 +78,7 @@ STRIPE_PRICE_ID_PRO_MONTHLY = os.getenv("STRIPE_PRICE_ID_PRO_MONTHLY", "")
 STRIPE_PRICE_ID_PRO_YEARLY = os.getenv("STRIPE_PRICE_ID_PRO_YEARLY", "")
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8081")
 BILLING_ENFORCED = os.getenv("BILLING_ENFORCED", "false").lower() == "true"
+DEBUG_BILLING = os.getenv("DEBUG_BILLING", "false").lower() == "true"
 
 
 def public_base_url() -> str:
@@ -136,13 +139,17 @@ TRANSLATION_ALIASES = {
     "stve": "sv",
     "nbg": "nbg1951",
     "nbg51": "nbg1951",
+    "basisbijbel": "bb",
+    "nlb": "bb",
 }
 COMMENTARY_SOURCE_ALIASES = {
     "matthew-henry-nl": "matthew_henry_nl",
 }
 
 def load_all_versions():
-    versions_dir = os.path.join(BASE_DIR, "data")
+    versions_dir = DATA_DIR if os.path.isdir(DATA_DIR) else DEFAULT_DATA_DIR
+    if versions_dir != DATA_DIR:
+        logging.warning(f"DATA_DIR '{DATA_DIR}' niet gevonden, fallback naar '{DEFAULT_DATA_DIR}'.")
     versions = {}
     if not os.path.isdir(versions_dir):
         logging.warning(f"Versions dir '{versions_dir}' not found.")
@@ -339,6 +346,22 @@ def humans_txt():
         return PlainTextResponse(f.read(), media_type="text/plain; charset=utf-8")
 
 
+@app.get("/favicon.ico")
+@app.head("/favicon.ico")
+def favicon():
+    """
+    Serve favicon from a stable root path expected by browsers.
+    """
+    candidate_paths = [
+        os.path.join(BASE_DIR, "public", "favicon", "favicon.ico"),
+        os.path.join(BASE_DIR, "favicon.ico"),
+    ]
+    for path in candidate_paths:
+        if os.path.exists(path):
+            return FileResponse(path, media_type="image/x-icon")
+    raise HTTPException(status_code=404, detail="favicon.ico niet gevonden")
+
+
 # --- Serve index.html on /
 # HEAD is required for Cloudflare and many probes; GET-only returns 405.
 @app.get("/", response_class=HTMLResponse)
@@ -499,8 +522,7 @@ def get_daytext(request: Request, seed: str = None, version: str = DEFAULT_TRANS
 
 @app.get("/api/versions")
 @limiter.limit("10/minute")
-def get_versions(request: Request, x_api_key: Optional[str] = Security(optional_api_key_header)):
-    ensure_paid_access(request, x_api_key)
+def get_versions(request: Request):
     # Return metadata for all versions
     return [
         {
@@ -718,6 +740,22 @@ def get_price_id_for_plan(plan: str) -> str:
     return price_id
 
 
+def _mask_secret(value: str, visible: int = 4) -> str:
+    if not value:
+        return ""
+    if len(value) <= visible * 2:
+        return "*" * len(value)
+    return f"{value[:visible]}...{value[-visible:]}"
+
+
+def _ensure_local_billing_debug_access(request: Request) -> None:
+    if not DEBUG_BILLING:
+        raise HTTPException(status_code=404, detail="Niet gevonden")
+    host = _request_client_ip(request)
+    if host not in {"127.0.0.1", "::1", "localhost"}:
+        raise HTTPException(status_code=403, detail="Alleen lokaal beschikbaar")
+
+
 def record_processed_event(session, event_id: str, event_type: str) -> bool:
     """
     Returns True when event is already processed, False when newly recorded.
@@ -745,8 +783,10 @@ def create_checkout_session(request: Request, payload: CheckoutSessionRequest):
             success_url=f"{APP_BASE_URL}/?checkout=success",
             cancel_url=f"{APP_BASE_URL}/?checkout=cancelled",
         )
-        return {"checkout_url": session.url}
+        logging.info(f"Stripe checkout session created: id={session.id} email={payload.email} plan={payload.plan}")
+        return {"checkout_url": session.url, "session_id": session.id}
     except Exception as exc:
+        logging.exception(f"Stripe checkout failed for email={payload.email} plan={payload.plan}")
         raise HTTPException(status_code=400, detail=f"Stripe checkout mislukt: {exc}")
 
 
@@ -763,10 +803,12 @@ def create_portal_session(request: Request, payload: PortalSessionRequest):
             customer=customers.data[0].id,
             return_url=APP_BASE_URL,
         )
+        logging.info(f"Stripe portal session created for email={payload.email}")
         return {"portal_url": portal.url}
     except HTTPException:
         raise
     except Exception as exc:
+        logging.exception(f"Stripe portal failed for email={payload.email}")
         raise HTTPException(status_code=400, detail=f"Stripe portal mislukt: {exc}")
 
 
@@ -832,6 +874,7 @@ async def stripe_webhook(request: Request):
             payload, sig_header, STRIPE_WEBHOOK_SECRET
         )
     except Exception as e:
+        logging.warning(f"Stripe webhook signature verify failed: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
     session = SessionLocal()
@@ -840,6 +883,7 @@ async def stripe_webhook(request: Request):
         event_type = event.get("type")
         if not event_id or not event_type:
             raise HTTPException(status_code=400, detail="Ongeldig Stripe event")
+        logging.info(f"Stripe webhook received: id={event_id} type={event_type}")
         if record_processed_event(session, event_id, event_type):
             return {"status": "al_verwerkt"}
 
@@ -913,5 +957,81 @@ async def stripe_webhook(request: Request):
                         api_key_obj.active = event_type != "customer.subscription.deleted"
                         session.commit()
         return {"status": "succes"}
+    finally:
+        session.close()
+
+
+@app.get("/billing/debug/config")
+@limiter.limit("30/minute")
+def billing_debug_config(request: Request):
+    """
+    Local debug endpoint for Stripe configuration checks.
+    Enabled only when DEBUG_BILLING=true and localhost access.
+    """
+    _ensure_local_billing_debug_access(request)
+    return {
+        "billing_enforced": BILLING_ENFORCED,
+        "debug_billing": DEBUG_BILLING,
+        "app_base_url": APP_BASE_URL,
+        "stripe_secret_key_set": bool(STRIPE_SECRET_KEY),
+        "stripe_secret_key_masked": _mask_secret(STRIPE_SECRET_KEY),
+        "stripe_webhook_secret_set": bool(STRIPE_WEBHOOK_SECRET),
+        "stripe_webhook_secret_masked": _mask_secret(STRIPE_WEBHOOK_SECRET),
+        "stripe_price_id_pro_monthly_set": bool(STRIPE_PRICE_ID_PRO_MONTHLY),
+        "stripe_price_id_pro_monthly": STRIPE_PRICE_ID_PRO_MONTHLY or "",
+        "stripe_price_id_pro_yearly_set": bool(STRIPE_PRICE_ID_PRO_YEARLY),
+        "stripe_price_id_pro_yearly": STRIPE_PRICE_ID_PRO_YEARLY or "",
+    }
+
+
+@app.get("/billing/debug/ping")
+@limiter.limit("60/minute")
+def billing_debug_ping(request: Request):
+    """
+    Lightweight local debug ping for frontend diagnostics.
+    Enabled only when DEBUG_BILLING=true and localhost access.
+    """
+    _ensure_local_billing_debug_access(request)
+    return {
+        "ok": True,
+        "debug_billing": DEBUG_BILLING,
+        "billing_enforced": BILLING_ENFORCED,
+        "app_base_url": APP_BASE_URL,
+    }
+
+
+@app.get("/billing/debug/email-status")
+@limiter.limit("30/minute")
+def billing_debug_email_status(request: Request, email: str):
+    """
+    Local debug endpoint: inspect API key/subscription state for email.
+    Enabled only when DEBUG_BILLING=true and localhost access.
+    """
+    _ensure_local_billing_debug_access(request)
+    session = SessionLocal()
+    try:
+        api_key = session.query(APIKey).filter_by(user_email=email).first()
+        if not api_key:
+            return {"email": email, "exists": False}
+        subscription = (
+            session.query(BillingSubscription)
+            .filter_by(api_key_id=api_key.id)
+            .order_by(BillingSubscription.updated_at.desc())
+            .first()
+        )
+        return {
+            "email": email,
+            "exists": True,
+            "api_key_active": bool(api_key.active),
+            "api_key_masked": _mask_secret(api_key.api_key, visible=6),
+            "subscription": None if not subscription else {
+                "plan_name": subscription.plan_name,
+                "status": subscription.status,
+                "stripe_customer_id": subscription.stripe_customer_id,
+                "stripe_subscription_id": subscription.stripe_subscription_id,
+                "stripe_price_id": subscription.stripe_price_id,
+                "current_period_end": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+            },
+        }
     finally:
         session.close()

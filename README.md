@@ -110,27 +110,10 @@ curl -X POST "https://bijbelapi.com/api/parse/references" \
 
 Current supported translation keys:
 
-- `nbg1951`
-- `nld1939`
-- `sv` (alias: `statenvertaling`)
-- `bb` (if data file is present)
-
-Legacy keys such as `asv` and `kjv` are not supported anymore.
-
----
-
-## 💳 Billing (Stripe)
-
-The API includes Stripe billing endpoints for paid access flows.
-
-Required environment variables:
-
-- `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_PRICE_ID_PRO_MONTHLY`
-- `STRIPE_PRICE_ID_PRO_YEARLY`
-- `APP_BASE_URL`
-- `BILLING_ENFORCED` (`true`/`false`)
+- `nbg1951` (Nederlandse Bijbelvertaling NBG 1951)
+- `nld1939` (Nederlandse Bijbelvertaling NLD 1939)
+- `sv` (Statenvertaling)
+- `bb` (BasisBijbel)
 
 ---
 
@@ -160,4 +143,4 @@ This API is licensed under the [MIT License](LICENSE).
 
 ## 📌 Version
 
-**Current Version**: `v1.0`
+**Current Version**: `v1.1`

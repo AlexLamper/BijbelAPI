@@ -1,0 +1,98 @@
+This is a tutorial that explains how to convert a PUBLIC DOMAIN Online Bible module (onlinebible.org) to theWord (theword.net) which can then be converted to a MySword Bible module (mysword.info)
+ 
+A YouTube tutorial video is available here:
+http://youtu.be/jPupNk5u864
+ 
+5/5/2012 Instructions:
+
+=== Part 1. Download and install free programs ===
+ 
+AutoIT, OnlineBible, theWord, and NotePad++
+ 
+http://www.autoitscript.com/site/autoit/downloads
+http://www.onlinebible.org/html/eng/index.htm
+http://www.theword.net/index.php?home&l=english
+http://notepad-plus-plus.org/download/v6.1.2.html
+
+=== Part 2. Copy/Paste verses from OnlineBible to a text document ===
+ 
+2A. Open "bibletext.txt" in a text editor
+2B. Open OLB and then open a public domain Bible.
+2C. Start at Genesis 1:1
+2D. Double click "OLB-to-TEXT.au3" - This will launch the copy/paste macro.
+2E. Click "OK" on the Copy-Paste-Verses script dialog.
+
+The OLB-to-TEXT.au3 script will copy/paste each verse into your text editor in groups of 50.
+The default is loop twice, so you should have exactly 100 verses as a result.
+ 
+If you have less than 100 lines, your computer is not able to think fast enough.
+Adjust the SendKeyDelay parameter in the OLB-to-TEXT.au3 script using a text editor
+  Opt("SendKeyDelay", 25)
+Type in a number greater than 25. Start with 30 and add 5 until you get 100 verses.
+ 
+If you want more than 100 verses, adjust the loop in the script:
+  Until $i = 2
+Type in a number greater than 2. Each loop is 50 verses. So looping 3 times will result in 150 verses.
+
+There is a copyright restriction imposed on non-public domain Bibles so please limit the loop to 10 (500 verses maximum).
+http://www.onlinebible.net/faqs.html#faq1c
+ 
+However, if you want to copy paste an entire public domain Bible (31102 verses), you need to loop 622 times.
+It takes about 40 minutes to copy paste an entire public domain Bible.
+ 
+=== Part 3. Make sure you have 31102 verses ===
+
+When the conversion is over, you need to remove the double returns and check to see if there are 31102 lines.
+If you are using NotePad++, do this dearch/replace (Ctrl+H) and make sure regular expression is checked:
+
+Find what:[\r\n\r\n] (don't include the brackets)
+Replace what:[\r\n]
+
+If there are more than 31102 lines, you have a duplicate line and need to remove it.
+If you are using NotePad++, do this dearch/replace (Ctrl+H) and make sure regular expression is checked:
+
+Find what:[^(.*\r?\n)\1] (don't include the brackets)
+Replace what:[\1] (don't include the brackets)
+
+If you have less than 31102 lines, you need to either find the missing lines and copy/paste them manually or set the SendKeyDelay to a higher number and start again.
+ 
+=== Part 4. Converting to a text format that ITBWTW can read using NotePad++ ===
+
+4A. Remove the verse references and numbers at the beginning of each line (make sure regular expression is checked):
+
+Find what:[^\S+ \d+:\d+ ]
+Replace what:nothing
+
+4B. Remove the ¶ character (regular expression off):
+
+Find what:[¶ ]
+Replace what:nothing
+
+4C. Remove the * character (regular expression off):
+
+Find what:[*]
+Replace what:nothing
+
+4D. Replace [ and ] with special code (regular expression off):
+
+Find what:[[]
+Replace what:[<FI>]
+
+Find what:[]]
+Replace what:[<Fi>]
+
+4E. Change the name of your Bible text file from bible.txt to bible.ont
+
+4F. Open theword, go to the About menu, go to file locations, Personal files folder, and press the "..." button.
+
+4G. Copy your Bible.ont file to the folder, close theWord, and re-open it, and you should see your newly converted public domain Bible in the list.
+
+More information here:
+http://www.theword.net/index.php?article.tools&l=english
+
+=== Part 5. Converting Bible.ont to MySword ===
+
+There are instructions for converting .ont files to MySword modules here:
+ 
+http://www.biblesupport.com/topic/1415-instructions-for-making-your-own-mysword-modules/
+
