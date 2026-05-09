@@ -4,10 +4,18 @@ services:
     env: python
     plan: starter
     buildCommand: pip install -r requirements.txt && npm ci && npm run build:css
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: python scripts/sync_private_data.py && uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
       - key: DATA_DIR
         value: /opt/render/project/src/private-data
+      - key: GITHUB_DATA_REPO
+        value: AlexLamper/bijbelapi-data
+      - key: GITHUB_DATA_BRANCH
+        value: main
+      - key: GITHUB_DATA_SUBDIR
+        value: data
+      - key: REQUIRE_PRIVATE_DATA
+        value: true

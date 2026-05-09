@@ -115,8 +115,6 @@ Current supported translation keys:
 - `sv` (Statenvertaling)
 - `bb` (BasisBijbel)
 
----
-
 ## 🧩 Expansion
 
 Planned next steps:

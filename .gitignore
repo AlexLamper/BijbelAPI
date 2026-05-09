@@ -29,3 +29,7 @@ node_modules/
 
 # Local source data (not for git)
 non-transformed-data/
+
+# Keep Bible datasets private (loaded from private repo at startup)
+data/*.json
+data/*.json.gz
