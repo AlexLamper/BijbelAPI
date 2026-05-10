@@ -472,6 +472,7 @@ function versionsDisplayTitle(key, apiName, fallbackKey) {
 function versionsDisplayDescription(key, apiDescription) {
     const k = String(key || '').toLowerCase();
     if (k === 'sv') return 'De Nederlandse Staten Vertaling';
+    if (k === 'hsv') return 'De Herziene Statenvertaling, geactualiseerd klassiek Nederlands';
     if (k === 'bb') return 'De BasisBijbel, de bijbel in makkelijk Nederlands';
     const one = firstSentenceFromDescription(apiDescription);
     return one || 'Geen beschrijving beschikbaar.';

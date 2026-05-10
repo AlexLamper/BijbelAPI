@@ -108,6 +108,7 @@ Huidige vertaalcodes:
 - `nbg1951` (Nederlandse Bijbelvertaling NBG 1951)
 - `nld1939` (Nederlandse Bijbelvertaling NLD 1939)
 - `sv` (Statenvertaling)
+- `hsv` (Herziene Statenvertaling)
 - `bb` (BasisBijbel)
 
 ## Verdere uitbreiding

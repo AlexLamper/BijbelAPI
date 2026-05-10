@@ -216,12 +216,13 @@ async def log_requests(request: Request, call_next):
 
 # --- Multi-version support for Bible texts ---
 DEFAULT_TRANSLATION = "nbg1951"
-SUPPORTED_TRANSLATIONS = {"nbg1951", "bb", "sv", "nld1939"}
+SUPPORTED_TRANSLATIONS = {"nbg1951", "bb", "sv", "nld1939", "hsv"}
 LEGACY_TRANSLATIONS = {"asv", "kjv"}
 ENGLISH_COMMENTARY_KEYS = {"matthew-henry"}
 TRANSLATION_ALIASES = {
     "statenvertaling": "sv",
     "stve": "sv",
+    "herziene-statenvertaling": "hsv",
     "nbg": "nbg1951",
     "nbg51": "nbg1951",
     "basisbijbel": "bb",
@@ -328,16 +329,32 @@ def load_all_versions():
                 logging.warning(f"Failed to load version file {path}: {e}")
                 continue
             structured_data = {}
-            for verse in raw_data.get("verses", []):
-                book = verse.get("book_name")
-                chapter = str(verse.get("chapter"))
-                verse_number = str(verse.get("verse"))
-                text = verse.get("text")
-                if book not in structured_data:
-                    structured_data[book] = {}
-                if chapter not in structured_data[book]:
-                    structured_data[book][chapter] = {}
-                structured_data[book][chapter][verse_number] = text
+            books = raw_data.get("books")
+            if isinstance(books, dict) and books:
+                for book_name, book_obj in books.items():
+                    structured_data[book_name] = {}
+                    chapters = book_obj.get("chapters") or {}
+                    if not isinstance(chapters, dict):
+                        continue
+                    for ch_key, ch_obj in chapters.items():
+                        ch = str(ch_key)
+                        structured_data[book_name][ch] = {}
+                        verses_map = (ch_obj or {}).get("verses") or {}
+                        if not isinstance(verses_map, dict):
+                            continue
+                        for v_key, text in verses_map.items():
+                            structured_data[book_name][ch][str(v_key)] = text
+            else:
+                for verse in raw_data.get("verses", []):
+                    book = verse.get("book_name")
+                    chapter = str(verse.get("chapter"))
+                    verse_number = str(verse.get("verse"))
+                    text = verse.get("text")
+                    if book not in structured_data:
+                        structured_data[book] = {}
+                    if chapter not in structured_data[book]:
+                        structured_data[book][chapter] = {}
+                    structured_data[book][chapter][verse_number] = text
             normalized_name = version_name.lower()
             canonical_name = TRANSLATION_ALIASES.get(normalized_name, normalized_name)
             if normalized_name in LEGACY_TRANSLATIONS:
@@ -346,8 +363,20 @@ def load_all_versions():
             if canonical_name not in SUPPORTED_TRANSLATIONS:
                 logging.info(f"Sla niet-ondersteunde vertaling over: {version_name}")
                 continue
+            meta = raw_data.get("metadata")
+            if meta:
+                meta_out = meta
+            else:
+                meta_out = {}
+                if raw_data.get("name"):
+                    meta_out["name"] = raw_data["name"]
+                if raw_data.get("id"):
+                    meta_out["shortname"] = raw_data["id"]
+                    meta_out["module"] = raw_data["id"]
+                if raw_data.get("name") or raw_data.get("id"):
+                    meta_out["lang"] = "nl"
             versions[canonical_name] = {
-                "meta": raw_data.get("metadata", {}),
+                "meta": meta_out,
                 "data": structured_data
             }
     missing_translations = [
