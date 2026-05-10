@@ -5,7 +5,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "build:css": "tailwindcss -i ./site/tailwind.input.css -o ./site/tw.css --minify"
+    "build:css": "tailwindcss -i ./site/tailwind.input.css -o ./site/tw.css --minify",
+    "watch:css": "tailwindcss -i ./site/tailwind.input.css -o ./site/tw.css --watch"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

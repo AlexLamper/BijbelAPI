@@ -7,7 +7,10 @@
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{CANONICAL_ORIGIN}}/">
     <link rel="icon" href="/public/favicon/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/site/tw.css">
+    <!-- Runtime Tailwind (different method: no local build dependency) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Keep compiled CSS as fallback + cache bust -->
+    <link rel="stylesheet" href="/site/tw.css?v=20260510-1600">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BijbelAPI">
@@ -59,14 +62,14 @@
         },
         {
           "@type": "Offer",
-          "name": "BijbelAPI Pro — maandelijks",
+          "name": "BijbelAPI Pro - maandelijks",
           "price": "9.99",
           "priceCurrency": "EUR",
           "description": "Maandelijks abonnement via Stripe Checkout."
         },
         {
           "@type": "Offer",
-          "name": "BijbelAPI Pro — jaarlijks",
+          "name": "BijbelAPI Pro - jaarlijks",
           "price": "99.99",
           "priceCurrency": "EUR",
           "description": "Jaarabonnement via Stripe Checkout."
@@ -146,3 +149,5 @@
 }
     </script>
 </head>
+
+
