@@ -24,3 +24,9 @@ services:
         value: true
       - key: MONGODB_DB_NAME
         value: bijbelapi
+      - key: BILLING_ENFORCED
+        value: "true"
+      - key: APP_BASE_URL
+        value: "https://bijbelapi.com"
+      - key: CANONICAL_PUBLIC_URL
+        value: "https://bijbelapi.com"

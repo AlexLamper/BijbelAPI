@@ -1,41 +1,156 @@
 <section id="api" class="border-y border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
+    <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-16">
 
-        <h2 class="mb-3 text-2xl font-semibold tracking-tight">API-overzicht</h2>
-        <p class="mb-6 text-sm text-slate-600">Belangrijkste endpoints voor dagelijkse integratie. Volledige documentatie op <a href="/docs" class="font-medium text-blue-600 hover:underline">/docs</a>.</p>
+        <div class="mb-10 text-center fade-in-section">
+            <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-600">API Referentie</p>
+            <h2 class="mb-3 text-3xl font-bold tracking-tight text-slate-900">Snel aan de slag</h2>
+            <p class="mx-auto max-w-lg text-base leading-relaxed text-slate-500">Kopieer een van de codevoorbeelden en je eerste request werkt in minder dan een minuut.</p>
+        </div>
 
-        <div class="mb-6 flex flex-wrap gap-3">
-            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
-                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
-                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                </span>
-                <span><strong class="font-semibold text-slate-700">15</strong> endpoints</span>
+        <!-- Code example tabs -->
+        <div class="mb-12 overflow-hidden rounded-2xl border border-slate-200 shadow-sm fade-in-section">
+            <!-- Tab bar -->
+            <div class="flex border-b border-slate-200 bg-slate-50">
+                <button type="button" class="api-tab api-tab-active px-5 py-3 text-sm font-medium" data-tab="curl">curl</button>
+                <button type="button" class="api-tab px-5 py-3 text-sm font-medium text-slate-500 hover:text-slate-800" data-tab="js">JavaScript</button>
+                <button type="button" class="api-tab px-5 py-3 text-sm font-medium text-slate-500 hover:text-slate-800" data-tab="python">Python</button>
             </div>
-            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
-                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
-                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                </span>
-                <span class="inline-block rounded px-2 py-0.5 text-[11px] font-semibold tracking-wide bg-sky-100 text-sky-800">GET</span>
-                <span><strong class="font-semibold text-slate-700">14</strong> methoden</span>
+
+            <!-- Tab: curl -->
+            <div class="api-tab-panel" id="api-panel-curl">
+                <div class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+                    <div class="bg-slate-900 p-5">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Vers ophalen (GET)</p>
+                        <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">curl -sS "https://bijbelapi.com/api/verse\
+  ?book=Johannes&amp;chapter=3&amp;verse=16\
+  &amp;version=nbg1951" \
+  -H "Accept: application/json"</pre>
+                    </div>
+                    <div class="bg-slate-900 p-5">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Met Pro API-sleutel</p>
+                        <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">curl -sS "https://bijbelapi.com/api/search\
+  ?q=licht&amp;version=nbg1951" \
+  -H "Accept: application/json" \
+  -H "x-api-key: JOUW-API-SLEUTEL"</pre>
+                    </div>
+                </div>
+                <div class="bg-slate-950 border-t border-slate-800 p-5">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Voorbeeld response</p>
+                    <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-400">{
+  "book": "Johannes",
+  "chapter": 3,
+  "verse": 16,
+  "version": "nbg1951",
+  "text": "Want alzo lief heeft God de wereld gehad, dat Hij zijn eniggeboren Zoon gegeven heeft..."
+}</pre>
+                </div>
             </div>
-            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
-                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
-                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-                </span>
-                <span class="inline-block rounded px-2 py-0.5 text-[11px] font-semibold tracking-wide bg-emerald-100 text-emerald-800">POST</span>
-                <span><strong class="font-semibold text-slate-700">2</strong> methoden</span>
+
+            <!-- Tab: JavaScript -->
+            <div class="api-tab-panel hidden" id="api-panel-js">
+                <div class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+                    <div class="bg-slate-900 p-5">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">fetch (browser / Node)</p>
+                        <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">const res = await fetch(
+  'https://bijbelapi.com/api/verse' +
+  '?book=Johannes&chapter=3&verse=16' +
+  '&version=nbg1951',
+  { headers: { Accept: 'application/json' } }
+);
+const data = await res.json();
+console.log(data.text);</pre>
+                    </div>
+                    <div class="bg-slate-900 p-5">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Met Pro API-sleutel</p>
+                        <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">const res = await fetch(
+  'https://bijbelapi.com/api/search?q=licht',
+  {
+    headers: {
+      Accept: 'application/json',
+      'x-api-key': 'JOUW-API-SLEUTEL',
+    },
+  }
+);
+const data = await res.json();</pre>
+                    </div>
+                </div>
+                <div class="bg-slate-950 border-t border-slate-800 p-5">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Voorbeeld response</p>
+                    <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-400">{
+  "book": "Johannes", "chapter": 3, "verse": 16,
+  "version": "nbg1951",
+  "text": "Want alzo lief heeft God de wereld gehad..."
+}</pre>
+                </div>
             </div>
-            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
-                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
-                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-                </span>
-                <span>Geen auth vereist</span>
+
+            <!-- Tab: Python -->
+            <div class="api-tab-panel hidden" id="api-panel-python">
+                <div class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+                    <div class="bg-slate-900 p-5">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">requests (Python 3)</p>
+                        <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">import requests
+
+r = requests.get(
+    "https://bijbelapi.com/api/verse",
+    params={
+        "book": "Johannes",
+        "chapter": 3, "verse": 16,
+        "version": "nbg1951",
+    },
+)
+print(r.json()["text"])</pre>
+                    </div>
+                    <div class="bg-slate-900 p-5">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Met Pro API-sleutel</p>
+                        <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">import requests
+
+r = requests.get(
+    "https://bijbelapi.com/api/search",
+    params={"q": "licht", "version": "nbg1951"},
+    headers={"x-api-key": "JOUW-API-SLEUTEL"},
+)
+results = r.json()</pre>
+                    </div>
+                </div>
+                <div class="bg-slate-950 border-t border-slate-800 p-5">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Voorbeeld response</p>
+                    <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-400">{
+  "book": "Johannes", "chapter": 3, "verse": 16,
+  "version": "nbg1951",
+  "text": "Want alzo lief heeft God de wereld gehad..."
+}</pre>
+                </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
+        <!-- Stats bar -->
+        <div class="mb-8 flex flex-wrap gap-4 fade-in-section">
+            <div class="flex min-h-[2.875rem] flex-1 basis-[12rem] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm text-slate-500">
+                <span class="inline-block rounded px-2 py-0.5 text-[11px] font-semibold tracking-wide bg-emerald-100 text-emerald-800">GET</span>
+                <span><strong class="font-semibold text-slate-700">14</strong> GET-methoden</span>
+            </div>
+            <div class="flex min-h-[2.875rem] flex-1 basis-[12rem] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm text-slate-500">
+                <span class="inline-block rounded px-2 py-0.5 text-[11px] font-semibold tracking-wide bg-blue-100 text-blue-800">POST</span>
+                <span><strong class="font-semibold text-slate-700">2</strong> POST-methoden</span>
+            </div>
+            <div class="flex min-h-[2.875rem] flex-1 basis-[12rem] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm text-slate-500">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                <span>Free tier: geen auth vereist</span>
+            </div>
+            <div class="flex min-h-[2.875rem] flex-1 basis-[12rem] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm text-slate-500">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Antwoord in &lt;100ms typisch</span>
+            </div>
+        </div>
+
+        <!-- Endpoint table -->
+        <h3 class="mb-4 text-lg font-semibold text-slate-900 fade-in-section">Alle endpoints</h3>
+        <p class="mb-5 text-sm text-slate-500 fade-in-section">Volledige interactieve documentatie op <a href="/docs" class="font-medium text-blue-600 hover:underline">/docs</a> (Swagger) en <a href="/redoc" class="font-medium text-blue-600 hover:underline">/redoc</a>.</p>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 fade-in-section">
             <table class="min-w-full text-left text-sm">
-                <thead class="bg-slate-100 text-slate-700">
+                <thead class="bg-slate-50 text-slate-700">
                     <tr>
                         <th class="w-20 px-4 py-3 font-semibold">Methode</th>
                         <th class="w-64 px-4 py-3 font-semibold">Endpoint</th>
@@ -55,10 +170,26 @@
 <style>
     .api-url-copy { opacity: 0; transition: opacity 0.15s; }
     tr:hover .api-url-copy { opacity: 1; }
+    .api-tab-active { color: #2563eb; border-bottom: 2px solid #2563eb; background: white; }
 </style>
 
 <script>
 (function () {
+    // Tab switching
+    document.querySelectorAll('.api-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.api-tab').forEach(function (b) {
+                b.classList.remove('api-tab-active');
+                b.classList.add('text-slate-500');
+            });
+            document.querySelectorAll('.api-tab-panel').forEach(function (p) { p.classList.add('hidden'); });
+            btn.classList.add('api-tab-active');
+            btn.classList.remove('text-slate-500');
+            var panel = document.getElementById('api-panel-' + btn.dataset.tab);
+            if (panel) panel.classList.remove('hidden');
+        });
+    });
+
     var API_ENDPOINTS = [
         { method: 'GET',  path: '/health',                          desc: 'Health check van de API',                    cat: 'meta' },
         { method: 'GET',  path: '/api/random',                      desc: 'Willekeurig vers ophalen',                   cat: 'tekst' },
@@ -86,110 +217,58 @@
     };
 
     function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
-
-    function escapeAttr(str) {
-        return escapeHtml(str).replace(/'/g, '&#39;');
-    }
-
+    function escapeAttr(str) { return escapeHtml(str).replace(/'/g,'&#39;'); }
     function apiAbsoluteUrl(path) {
         var p = path.charAt(0) === '/' ? path : '/' + path;
         try {
             var o = window.location.origin;
             if (!o || o === 'null' || o.indexOf('file:') === 0) return p;
             return o.replace(/\/$/, '') + p;
-        } catch (e) {
-            return p;
-        }
+        } catch (e) { return p; }
     }
-
     function copyTextSafe(text) {
-        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-            return navigator.clipboard.writeText(text);
-        }
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') return navigator.clipboard.writeText(text);
         return new Promise(function (resolve, reject) {
             try {
                 var ta = document.createElement('textarea');
-                ta.value = text;
-                ta.setAttribute('readonly', '');
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                ta.style.left = '-9999px';
-                document.body.appendChild(ta);
-                ta.focus();
-                ta.select();
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
+                document.body.appendChild(ta); ta.focus(); ta.select();
                 var ok = document.execCommand('copy');
                 document.body.removeChild(ta);
                 ok ? resolve() : reject(new Error('copy failed'));
-            } catch (err) {
-                reject(err);
-            }
+            } catch (err) { reject(err); }
         });
     }
 
     document.getElementById('api-table-body').innerHTML = API_ENDPOINTS.map(function (e) {
-        var methodBadge =
-            e.method === 'GET'
-                ? '<span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800">GET</span>'
-                : '<span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-800">POST</span>';
+        var methodBadge = e.method === 'GET'
+            ? '<span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800">GET</span>'
+            : '<span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-800">POST</span>';
         var catClass = CAT_COLORS[e.cat] || 'bg-slate-100 text-slate-600';
-        return (
-            '<tr class="group hover:bg-slate-50 transition-colors">' +
+        return '<tr class="group hover:bg-slate-50 transition-colors">' +
             '<td class="px-4 py-3">' + methodBadge + '</td>' +
-            '<td class="px-4 py-3"><code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800">' +
-            escapeHtml(e.path) +
-            '</code></td>' +
-            '<td class="px-4 py-3">' +
-            '<div class="flex items-center justify-between gap-3">' +
-            '<span class="text-slate-700">' +
-            escapeHtml(e.desc) +
-            '</span>' +
-            '<button type="button" class="api-url-copy flex-shrink-0 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] leading-snug tracking-wide text-slate-500 hover:bg-slate-100 hover:text-slate-700"' +
-            ' title="Volledige URL kopiëren"' +
-            ' data-api-path="' +
-            escapeAttr(e.path) +
-            '">kopieer</button>' +
-            '</div>' +
-            '</td>' +
-            '<td class="px-4 py-3">' +
-            '<span class="inline-block rounded-md px-2 py-0.5 text-[11px] font-medium ' +
-            catClass +
-            '">' +
-            escapeHtml(CAT_LABELS[e.cat] || e.cat) +
-            '</span>' +
-            '</td>' +
-            '</tr>'
-        );
+            '<td class="px-4 py-3"><code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800">' + escapeHtml(e.path) + '</code></td>' +
+            '<td class="px-4 py-3"><div class="flex items-center justify-between gap-3"><span class="text-slate-700">' + escapeHtml(e.desc) + '</span>' +
+            '<button type="button" class="api-url-copy flex-shrink-0 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] leading-snug tracking-wide text-slate-500 hover:bg-slate-100 hover:text-slate-700" title="Volledige URL kopiëren" data-api-path="' + escapeAttr(e.path) + '">kopieer</button></div></td>' +
+            '<td class="px-4 py-3"><span class="inline-block rounded-md px-2 py-0.5 text-[11px] font-medium ' + catClass + '">' + escapeHtml(CAT_LABELS[e.cat] || e.cat) + '</span></td>' +
+            '</tr>';
     }).join('');
 
     var tbody = document.getElementById('api-table-body');
-    if (!tbody) return;
-
-    tbody.addEventListener('click', function (ev) {
-        var btn = ev.target.closest('.api-url-copy');
-        if (!btn || !tbody.contains(btn)) return;
-        var path = btn.getAttribute('data-api-path');
-        if (!path) return;
-        var url = apiAbsoluteUrl(path);
-        var label = 'kopieer';
-        copyTextSafe(url)
-            .then(function () {
-                btn.textContent = 'gekopieerd';
-                window.setTimeout(function () {
-                    btn.textContent = label;
-                }, 1500);
-            })
-            .catch(function () {
-                btn.textContent = 'mislukt';
-                window.setTimeout(function () {
-                    btn.textContent = label;
-                }, 1500);
-            });
-    });
+    if (tbody) {
+        tbody.addEventListener('click', function (ev) {
+            var btn = ev.target.closest('.api-url-copy');
+            if (!btn || !tbody.contains(btn)) return;
+            var path = btn.getAttribute('data-api-path');
+            if (!path) return;
+            var url = apiAbsoluteUrl(path);
+            copyTextSafe(url)
+                .then(function () { btn.textContent = 'gekopieerd'; window.setTimeout(function () { btn.textContent = 'kopieer'; }, 1500); })
+                .catch(function () { btn.textContent = 'mislukt'; window.setTimeout(function () { btn.textContent = 'kopieer'; }, 1500); });
+        });
+    }
 })();
 </script>

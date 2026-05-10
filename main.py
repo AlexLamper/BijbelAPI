@@ -186,7 +186,7 @@ def _inject_canonical_html(relative_path: str) -> HTMLResponse:
     return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
 
 
-FREE_TIER_DAILY_LIMIT = int(os.getenv("FREE_TIER_DAILY_LIMIT", "1000"))
+FREE_TIER_DAILY_LIMIT = int(os.getenv("FREE_TIER_DAILY_LIMIT", "50"))
 PRO_TIER_DAILY_LIMIT = int(os.getenv("PRO_TIER_DAILY_LIMIT", "100000"))
 stripe.api_key = STRIPE_SECRET_KEY
 FREE_TIER_USAGE: dict[tuple[str, str], int] = {}
@@ -855,8 +855,8 @@ def _enforce_free_tier_limit(request: Request) -> None:
         raise HTTPException(
             status_code=429,
             detail=(
-                "Free tier limiet bereikt voor vandaag. "
-                "Maak een betaald abonnement aan voor hogere limieten."
+                f"Gratis limiet bereikt ({FREE_TIER_DAILY_LIMIT} req/dag per IP). "
+                "Upgrade naar Pro voor 100.000 req/dag — vanaf \u20ac9,99/maand op bijbelapi.com."
             ),
         )
 

@@ -205,22 +205,79 @@ function setButtonLoading(btn, loading, labelBusy) {
     }
 }
 
-async function startStripeCheckout(plan) {
-    billingDebugLog(`startStripeCheckout plan=${plan}`);
-    const errEl = document.getElementById('checkoutError');
-    if (errEl) {
-        errEl.textContent = '';
-        errEl.classList.add('hidden');
+// --- Checkout Modal ---
+let _modalCurrentPlan = 'pro_monthly';
+
+function openCheckoutModal(plan) {
+    _modalCurrentPlan = plan || 'pro_monthly';
+    const modal = document.getElementById('checkoutModal');
+    if (!modal) { startStripeCheckout(_modalCurrentPlan, null); return; }
+    const planLabel = document.getElementById('modalPlanLabel');
+    if (planLabel) {
+        planLabel.textContent = _modalCurrentPlan === 'pro_yearly'
+            ? 'Pro Jaarlijks — €99,99 / jaar'
+            : 'Pro Maandelijks — €9,99 / maand';
     }
-    const emailInput = document.getElementById('checkoutEmail');
-    const email = emailInput ? emailInput.value.trim() : '';
+    const emailInput = document.getElementById('modalCheckoutEmail');
+    if (emailInput) {
+        try { const s = localStorage.getItem(BIJBELAPI_LS_BILLING_EMAIL); emailInput.value = s || ''; } catch { emailInput.value = ''; }
+    }
+    const errEl = document.getElementById('modalCheckoutError');
+    if (errEl) { errEl.textContent = ''; errEl.classList.add('hidden'); }
+    if (!modal.open) modal.showModal();
+    if (emailInput) setTimeout(() => emailInput.focus(), 50);
+}
+
+function closeCheckoutModal() {
+    const modal = document.getElementById('checkoutModal');
+    if (modal && modal.open) modal.close();
+}
+
+function openPortalModal() {
+    const modal = document.getElementById('portalModal');
+    if (!modal) { openStripePortal(); return; }
+    const emailInput = document.getElementById('portalModalEmail');
+    if (emailInput) {
+        try { const s = localStorage.getItem(BIJBELAPI_LS_BILLING_EMAIL); emailInput.value = s || ''; } catch { emailInput.value = ''; }
+    }
+    const errEl = document.getElementById('portalModalError');
+    if (errEl) { errEl.textContent = ''; errEl.classList.add('hidden'); }
+    if (!modal.open) modal.showModal();
+    if (emailInput) setTimeout(() => emailInput.focus(), 50);
+}
+
+function closePortalModal() {
+    const modal = document.getElementById('portalModal');
+    if (modal && modal.open) modal.close();
+}
+
+window.openCheckoutModal = openCheckoutModal;
+window.closeCheckoutModal = closeCheckoutModal;
+window.openPortalModal = openPortalModal;
+window.closePortalModal = closePortalModal;
+
+async function startStripeCheckout(plan, emailArg) {
+    billingDebugLog(`startStripeCheckout plan=${plan}`);
+    const modalOpen = document.getElementById('checkoutModal')?.open;
+    const errEl = modalOpen
+        ? document.getElementById('modalCheckoutError')
+        : document.getElementById('checkoutError');
+    if (errEl) { errEl.textContent = ''; errEl.classList.add('hidden'); }
+
+    let email = (typeof emailArg === 'string') ? emailArg.trim() : null;
+    if (email === null) {
+        const modalEmailEl = document.getElementById('modalCheckoutEmail');
+        const inlineEmailEl = document.getElementById('checkoutEmail');
+        const el = (modalOpen && modalEmailEl) ? modalEmailEl : (inlineEmailEl || modalEmailEl);
+        email = el ? el.value.trim() : '';
+    }
+
     billingDebugLog(`checkout email present=${Boolean(email)} valid=${Boolean(email && email.includes('@'))}`);
     if (!email || !email.includes('@')) {
         if (errEl) {
             errEl.textContent = 'Vul een geldig e-mailadres in voor Checkout.';
             errEl.classList.remove('hidden');
         }
-        if (emailInput) emailInput.focus();
         billingDebugLog('checkout blocked: invalid email');
         return;
     }
@@ -228,10 +285,11 @@ async function startStripeCheckout(plan) {
         errEl.textContent = 'Doorsturen naar Stripe Checkout...';
         errEl.classList.remove('hidden');
     }
-    const btn =
-        plan === 'pro_yearly'
+    const btn = modalOpen
+        ? document.getElementById('btnModalPay')
+        : (plan === 'pro_yearly'
             ? document.getElementById('btnCheckoutYearly')
-            : document.getElementById('btnCheckoutMonthly');
+            : document.getElementById('btnCheckoutMonthly'));
     setButtonLoading(btn, true, 'Bezig…');
     try {
         billingDebugLog('sending POST /billing/checkout-session');
@@ -267,6 +325,7 @@ async function startStripeCheckout(plan) {
         }
     } finally {
         billingDebugLog('checkout flow finished');
+        setButtonLoading(document.getElementById('btnModalPay'), false);
         setButtonLoading(document.getElementById('btnCheckoutMonthly'), false);
         setButtonLoading(document.getElementById('btnCheckoutYearly'), false);
     }
@@ -339,34 +398,81 @@ function initBillingAndBanners() {
     const monthlyBtn = document.getElementById('btnCheckoutMonthly');
     const yearlyBtn = document.getElementById('btnCheckoutYearly');
     const portalBtn = document.getElementById('btnPortal');
-    const checkoutEmail = document.getElementById('checkoutEmail');
-    const checkoutHint = document.getElementById('checkoutHint');
 
-    function updateCheckoutButtonState() {
-        if (!checkoutEmail) return;
-        const email = checkoutEmail.value.trim();
-        const valid = email.length > 3 && email.includes('@') && email.includes('.');
-        billingDebugLog(`email input changed valid=${valid}`);
-        if (checkoutHint) {
-            checkoutHint.textContent = valid
-                ? 'E-mailadres is geldig. Je kunt nu doorgaan naar Stripe.'
-                : 'Vul eerst een geldig e-mailadres in om te kunnen betalen.';
-            checkoutHint.className = valid
-                ? 'mt-2 text-xs text-emerald-700'
-                : 'mt-2 text-xs text-amber-700';
+    if (monthlyBtn) monthlyBtn.addEventListener('click', () => openCheckoutModal('pro_monthly'));
+    if (yearlyBtn) yearlyBtn.addEventListener('click', () => openCheckoutModal('pro_yearly'));
+    if (portalBtn) portalBtn.addEventListener('click', openPortalModal);
+    billingDebugLog(`billing buttons found monthly=${Boolean(monthlyBtn)} yearly=${Boolean(yearlyBtn)} portal=${Boolean(portalBtn)}`);
+
+    // Additional portal/checkout trigger buttons (header, footer, text link)
+    const btnPortalTextLink = document.getElementById('btnPortalTextLink');
+    if (btnPortalTextLink) btnPortalTextLink.addEventListener('click', openPortalModal);
+    const btnHeaderPro = document.getElementById('btnHeaderPro');
+    if (btnHeaderPro) btnHeaderPro.addEventListener('click', () => openCheckoutModal('pro_monthly'));
+    const btnMobilePro = document.getElementById('btnMobilePro');
+    if (btnMobilePro) btnMobilePro.addEventListener('click', () => {
+        const menu = document.getElementById('mobileMenu');
+        if (menu) menu.classList.add('hidden');
+        openCheckoutModal('pro_monthly');
+    });
+
+    // Checkout modal wiring
+    const checkoutModal = document.getElementById('checkoutModal');
+    const btnModalPay = document.getElementById('btnModalPay');
+    const btnModalClose = document.getElementById('btnModalClose');
+    if (btnModalPay) btnModalPay.addEventListener('click', () => startStripeCheckout(_modalCurrentPlan, null));
+    if (btnModalClose) btnModalClose.addEventListener('click', closeCheckoutModal);
+    if (checkoutModal) {
+        checkoutModal.addEventListener('click', (e) => { if (e.target === checkoutModal) closeCheckoutModal(); });
+        const emailEl = document.getElementById('modalCheckoutEmail');
+        if (emailEl) {
+            emailEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); startStripeCheckout(_modalCurrentPlan, null); } });
         }
     }
 
-    if (checkoutEmail) {
-        checkoutEmail.addEventListener('input', updateCheckoutButtonState);
-        checkoutEmail.addEventListener('blur', updateCheckoutButtonState);
-        updateCheckoutButtonState();
+    // Portal modal wiring
+    const portalModal = document.getElementById('portalModal');
+    const btnPortalModalSubmit = document.getElementById('btnPortalModalSubmit');
+    const btnPortalModalClose = document.getElementById('btnPortalModalClose');
+    if (btnPortalModalSubmit) {
+        btnPortalModalSubmit.addEventListener('click', async () => {
+            const emailEl = document.getElementById('portalModalEmail');
+            const errEl = document.getElementById('portalModalError');
+            const email = emailEl ? emailEl.value.trim() : '';
+            if (!email || !email.includes('@')) {
+                if (errEl) { errEl.textContent = 'Vul het e-mailadres in waarmee je Pro hebt afgenomen.'; errEl.classList.remove('hidden'); }
+                return;
+            }
+            const btn = document.getElementById('btnPortalModalSubmit');
+            setButtonLoading(btn, true, 'Bezig…');
+            try {
+                const res = await fetch('/billing/portal-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    body: JSON.stringify({ email }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    if (errEl) { errEl.textContent = stripeErrorMessage(data, res); errEl.classList.remove('hidden'); }
+                    return;
+                }
+                if (data.portal_url) { closePortalModal(); window.location.href = data.portal_url; return; }
+                if (errEl) { errEl.textContent = 'Geen portal-URL ontvangen.'; errEl.classList.remove('hidden'); }
+            } catch {
+                if (errEl) { errEl.textContent = 'Netwerkfout. Probeer het later opnieuw.'; errEl.classList.remove('hidden'); }
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        });
     }
-
-    if (monthlyBtn) monthlyBtn.addEventListener('click', () => startStripeCheckout('pro_monthly'));
-    if (yearlyBtn) yearlyBtn.addEventListener('click', () => startStripeCheckout('pro_yearly'));
-    if (portalBtn) portalBtn.addEventListener('click', openStripePortal);
-    billingDebugLog(`billing buttons found monthly=${Boolean(monthlyBtn)} yearly=${Boolean(yearlyBtn)} portal=${Boolean(portalBtn)}`);
+    if (btnPortalModalClose) btnPortalModalClose.addEventListener('click', closePortalModal);
+    if (portalModal) {
+        portalModal.addEventListener('click', (e) => { if (e.target === portalModal) closePortalModal(); });
+        const emailEl = document.getElementById('portalModalEmail');
+        if (emailEl) {
+            emailEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnPortalModalSubmit')?.click(); } });
+        }
+    }
 
     if (BILLING_DEBUG_ENABLED) {
         fetch('/billing/debug/ping', { headers: { Accept: 'application/json' } })

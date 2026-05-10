@@ -1,22 +1,78 @@
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div class="mx-auto flex max-w-7xl 2xl:max-w-[1600px] items-center justify-between px-6 md:px-8 2xl:px-6 py-4">
+        <div class="mx-auto flex max-w-7xl 2xl:max-w-[1600px] items-center justify-between px-6 md:px-8 2xl:px-6 py-3.5">
+            <!-- Logo -->
             <a href="/" class="flex items-center gap-3">
-                <img src="/public/images/logo.svg" alt="BijbelAPI — Nederlandse Bijbel API voor ontwikkelaars" class="h-10 w-10 rounded-lg" width="40" height="40" fetchpriority="high">
+                <img src="/public/images/logo.svg" alt="BijbelAPI — Nederlandse Bijbel API voor ontwikkelaars" class="h-9 w-9 rounded-lg" width="36" height="36" fetchpriority="high">
                 <div>
-                    <p class="text-base font-semibold tracking-tight">BijbelAPI</p>
+                    <p class="text-sm font-semibold tracking-tight">BijbelAPI</p>
                     <p class="text-xs text-slate-500">Nederlandse Bijbel API</p>
                 </div>
             </a>
-            <nav class="hidden items-center gap-6 text-sm md:flex" aria-label="Hoofdnavigatie">
-                <a href="#features" class="text-slate-600 hover:text-blue-700">Functies</a>
-                <a href="#api" class="text-slate-600 hover:text-blue-700">API</a>
-                <a href="#pricing" class="text-slate-600 hover:text-blue-700">Pricing</a>
-                <a href="#veelgestelde-vragen" class="text-slate-600 hover:text-blue-700">FAQ</a>
-                <a href="/bron.html" class="text-slate-600 hover:text-blue-700">Bronnen</a>
-                <a href="#contact" class="text-slate-600 hover:text-blue-700">Contact</a>
+
+            <!-- Desktop nav -->
+            <nav class="hidden items-center gap-5 text-sm md:flex" aria-label="Hoofdnavigatie">
+                <a href="#features" class="text-slate-600 hover:text-slate-900 transition-colors">Functies</a>
+                <a href="#api" class="text-slate-600 hover:text-slate-900 transition-colors">API</a>
+                <a href="#pricing" class="text-slate-600 hover:text-slate-900 transition-colors">Pricing</a>
+                <a href="#veelgestelde-vragen" class="text-slate-600 hover:text-slate-900 transition-colors">FAQ</a>
+                <a href="/bron.html" class="text-slate-600 hover:text-slate-900 transition-colors">Bronnen</a>
+                <a href="/docs" class="text-slate-600 hover:text-slate-900 transition-colors">Docs</a>
             </nav>
-            <a href="/docs" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
-                Documentatie
-            </a>
+
+            <!-- Desktop CTAs -->
+            <div class="hidden items-center gap-2 md:flex">
+                <button type="button" id="btnHeaderPro" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 transition-colors">
+                    Pro — €9,99/mnd
+                </button>
+            </div>
+
+            <!-- Mobile hamburger -->
+            <button type="button" id="mobileMenuBtn" class="flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-700 md:hidden" aria-label="Menu openen" aria-expanded="false" aria-controls="mobileMenu">
+                <svg id="iconHamburger" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg id="iconClose" class="hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Mobile menu (hidden by default) -->
+        <div id="mobileMenu" class="hidden border-t border-slate-100 bg-white px-6 pb-4 md:hidden">
+            <nav class="flex flex-col gap-1 pt-3 text-sm" aria-label="Mobiele navigatie">
+                <a href="#features" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Functies</a>
+                <a href="#api" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">API</a>
+                <a href="#pricing" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Pricing</a>
+                <a href="#veelgestelde-vragen" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">FAQ</a>
+                <a href="/bron.html" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Bronnen</a>
+                <a href="/docs" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Documentatie</a>
+                <div class="mt-2 border-t border-slate-100 pt-3">
+                    <button type="button" id="btnMobilePro" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
+                        Start Pro — €9,99/mnd
+                    </button>
+                </div>
+            </nav>
         </div>
     </header>
+
+    <script>
+    (function () {
+        var btn = document.getElementById('mobileMenuBtn');
+        var menu = document.getElementById('mobileMenu');
+        var iconH = document.getElementById('iconHamburger');
+        var iconC = document.getElementById('iconClose');
+        if (!btn || !menu) return;
+        btn.addEventListener('click', function () {
+            var open = !menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', open);
+            btn.setAttribute('aria-expanded', String(!open));
+            if (iconH) iconH.classList.toggle('hidden', !open);
+            if (iconC) iconC.classList.toggle('hidden', open);
+        });
+        // Close on nav link click
+        menu.querySelectorAll('a').forEach(function (a) {
+            a.addEventListener('click', function () {
+                menu.classList.add('hidden');
+                btn.setAttribute('aria-expanded', 'false');
+                if (iconH) iconH.classList.remove('hidden');
+                if (iconC) iconC.classList.add('hidden');
+            });
+        });
+    })();
+    </script>

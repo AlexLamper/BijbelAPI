@@ -1,199 +1,238 @@
 
-        <section id="pricing" class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
-            <div class="flex flex-col gap-10 md:gap-12 lg:gap-14">
-                <div class="flex flex-col gap-10 md:flex-row md:items-start md:justify-between md:gap-x-10 lg:gap-x-12 xl:gap-x-16">
-                    <div class="min-w-0 flex-1">
-                    <h2 class="mb-3 text-2xl font-semibold tracking-tight">Pricing en abonnementen</h2>
-                    <p class="max-w-3xl text-sm leading-relaxed text-slate-600">
-                        Start gratis voor tests en kleine projecten. <strong class="font-medium text-slate-800">BijbelAPI Pro</strong> geeft hogere limieten,
-                        betaling via Stripe (iDEAL en kaarten afhankelijk van je Stripe-instellingen) en zelfservice via het klantportaal.
-                        Alle prijzen zijn inclusief btw zoals je die in Stripe hebt geconfigureerd.
-                        <a href="#pro-gebruik" class="font-medium text-blue-700 hover:underline">Hoe gebruik je Pro na aankoop?</a>
+        <section id="pricing" class="bg-slate-50 border-y border-slate-200">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-16 md:py-20">
+
+                <!-- Header -->
+                <div class="mb-12 text-center fade-in-section">
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-600">Eenvoudige pricing</p>
+                    <h2 class="mb-3 text-3xl font-bold tracking-tight text-slate-900">Start gratis, schaal naar Pro</h2>
+                    <p class="mx-auto max-w-xl text-base leading-relaxed text-slate-500">
+                        De gratis tier is voldoende om te integreren en te testen. Zodra je de API serieus inzet, upgrade je eenvoudig naar Pro.
                     </p>
+                </div>
+
+                <!-- Pro active panel (hidden by default, shown by JS when key is saved) -->
+                <div id="billingProActivePanel" class="mb-8 hidden max-w-2xl mx-auto rounded-2xl border border-emerald-300 bg-emerald-50 p-5">
+                    <div class="flex items-start gap-3">
+                        <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-emerald-950">Je hebt een actief Pro-abonnement</p>
+                            <p id="billingProActiveDetail" class="mt-1 text-sm text-emerald-900"></p>
+                            <p class="mt-2 text-xs text-emerald-800">Gebruik je sleutel via de header <code class="rounded bg-emerald-100 px-1 font-mono text-emerald-950">x-api-key: JOUW-SLEUTEL</code> bij elke request. <a href="#pro-gebruik" class="font-medium underline">Zie codevoorbeelden.</a></p>
+                            <button type="button" id="btnPortal" class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-800 underline hover:text-emerald-900">
+                                Abonnement beheren via Stripe Portal
+                            </button>
+                        </div>
                     </div>
-                    <div class="w-full min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 p-5" id="savedApiKeyPanel">
-                    <label for="savedApiKeyInput" class="block text-sm font-medium text-slate-800">API-sleutel op dit apparaat</label>
-                    <p class="mt-1 text-xs text-slate-500">Optioneel: sla je Pro-sleutel lokaal op zodat deze pagina <strong class="font-medium text-slate-700">“Pro actief”</strong> kan tonen. Klik <strong>Onthouden</strong> na het plakken, of klik buiten het veld — dan wordt de sleutel ook opgeslagen (zelfde effect).</p>
-                    <p class="mt-2 text-xs text-slate-600">Op gedeelde computers: gebruik <strong>Vergeet sleutel</strong> als je klaar bent. De homepage moet via de server geladen worden (<code class="rounded bg-slate-200/80 px-1 font-mono text-slate-900">http://127.0.0.1:8081</code> of je domein), niet als los HTML-bestand.</p>
+                </div>
+
+                <!-- Pricing cards -->
+                <div class="grid gap-6 sm:grid-cols-3 fade-in-section">
+                    <!-- Free -->
+                    <article class="flex flex-col rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-500">Gratis</p>
+                        <div class="mb-1 flex items-end gap-1">
+                            <span class="text-4xl font-bold text-slate-900">€0</span>
+                            <span class="mb-1 text-sm text-slate-500">/ maand</span>
+                        </div>
+                        <p class="mb-6 text-sm text-slate-500">Voor verkennen en kleine projecten.</p>
+                        <ul class="mb-8 space-y-3 flex-1 text-sm text-slate-700">
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>{{FREE_TIER_DAILY_LIMIT}} requests per dag</strong> per IP-adres</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Alle kern-endpoints: verse, passage, search, daytext</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Geen creditcard vereist</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg><span class="text-slate-400">Geen API-sleutel</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg><span class="text-slate-400">Rate-limited na {{FREE_TIER_DAILY_LIMIT}} req</span></li>
+                        </ul>
+                        <a href="/docs" class="mt-auto inline-flex w-full justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                            Open documentatie
+                        </a>
+                    </article>
+
+                    <!-- Pro Monthly (highlighted) -->
+                    <article id="proSubscribeMonthlyCard" class="relative flex flex-col rounded-2xl border-2 border-slate-900 bg-slate-900 p-7 shadow-xl">
+                        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-4 py-1 text-xs font-semibold text-white shadow">Populairste keuze</div>
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">Pro Maandelijks</p>
+                        <div class="mb-1 flex items-end gap-1">
+                            <span class="text-4xl font-bold text-white">€9,99</span>
+                            <span class="mb-1 text-sm text-slate-400">/ maand</span>
+                        </div>
+                        <p class="mb-6 text-sm text-slate-400">Maandelijks opzegbaar. Direct actief na betaling.</p>
+                        <ul class="mb-8 space-y-3 flex-1 text-sm text-slate-300">
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong class="text-white">tot {{PRO_TIER_DAILY_LIMIT}} requests per dag</strong> per API-sleutel</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Persoonlijke API-sleutel direct na betaling</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Stripe Customer Portal — facturen &amp; opzeggen</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Alle endpoints inclusief parsing &amp; commentaar</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>E-mailondersteuning</span></li>
+                        </ul>
+                        <button type="button" id="btnCheckoutMonthly" class="mt-auto inline-flex w-full justify-center rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-900 hover:bg-slate-100 transition-colors shadow">
+                            Start Pro Maandelijks
+                        </button>
+                        <!-- Stripe trust -->
+                        <p class="mt-3 text-center text-xs text-slate-500">Betaling via <strong class="text-slate-400">Stripe</strong> — iDEAL, Mastercard, Visa</p>
+                    </article>
+
+                    <!-- Pro Yearly -->
+                    <article id="proSubscribeYearlyCard" class="flex flex-col rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-500">Pro Jaarlijks</p>
+                        <div class="mb-1 flex items-end gap-1">
+                            <span class="text-4xl font-bold text-slate-900">€99,99</span>
+                            <span class="mb-1 text-sm text-slate-500">/ jaar</span>
+                        </div>
+                        <p class="mb-1 text-sm text-emerald-600 font-medium">Twee maanden gratis t.o.v. maandprijs</p>
+                        <p class="mb-6 text-sm text-slate-500">Ideaal voor teams en langlopende productie-apps.</p>
+                        <ul class="mb-8 space-y-3 flex-1 text-sm text-slate-700">
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Alles uit Pro Maandelijks</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>tot {{PRO_TIER_DAILY_LIMIT}} requests per dag</strong> per API-sleutel</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Eén jaarlijkse factuur</span></li>
+                            <li class="flex items-start gap-2"><svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Stabiele kosten voor het hele jaar</span></li>
+                        </ul>
+                        <button type="button" id="btnCheckoutYearly" class="mt-auto inline-flex w-full justify-center rounded-xl border border-slate-900 bg-white px-4 py-3 text-sm font-bold text-slate-900 hover:bg-slate-50 transition-colors">
+                            Start Pro Jaarlijks
+                        </button>
+                        <p class="mt-3 text-center text-xs text-slate-400">Betaling via Stripe — iDEAL, Mastercard, Visa</p>
+                    </article>
+                </div>
+
+                <p class="mt-4 text-center text-xs text-slate-500" id="proFairUseFootnote">
+                    * Fair-use limiet per API-sleutel per dag voor platformstabiliteit. Neem contact op bij structureel hogere load.
+                </p>
+
+                <!-- How to use Pro after purchase -->
+                <div id="pro-gebruik" class="mt-14 scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm fade-in-section">
+                    <h3 class="mb-2 text-lg font-semibold text-slate-900">Hoe gebruik je Pro na aankoop?</h3>
+                    <p class="mb-6 max-w-3xl text-sm leading-relaxed text-slate-600">
+                        Na betaling via Stripe Checkout ontvang je direct je <strong>persoonlijke API-sleutel</strong> op de pagina (blauw balk bovenaan). Gebruik die bij elke request via de HTTP-header <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.8125rem] text-slate-900">x-api-key</code>.
+                    </p>
+                    <ol class="mb-8 max-w-3xl list-decimal space-y-4 pl-5 text-sm leading-relaxed text-slate-700">
+                        <li><strong class="text-slate-900">Betalen &amp; sleutel ontvangen</strong> — Klik "Start Pro", vul je e-mailadres in en betaal via Stripe. Na betaling zie je de sleutel direct op deze pagina.</li>
+                        <li><strong class="text-slate-900">Sleutel opslaan</strong> — Bewaar de sleutel veilig (wachtwoordmanager of env-bestand). De sleutel is ook opvraagbaar via <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">GET /billing/status</code> met je sleutel als header.</li>
+                        <li><strong class="text-slate-900">Sleutel gebruiken</strong> — Stuur bij elke request de header <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">x-api-key: JOUW-SLEUTEL</code> mee voor Pro-limieten.</li>
+                        <li><strong class="text-slate-900">Abonnement beheren</strong> — Via het Stripe Customer Portal (knop hierboven of hieronder) kun je betaalmethode wijzigen, facturen downloaden of opzeggen.</li>
+                    </ol>
+                    <div class="grid gap-5 lg:grid-cols-2">
+                        <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
+                            <figcaption class="border-b border-slate-200 bg-white px-4 py-3">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">curl</span>
+                                <span class="mt-0.5 block text-sm font-medium text-slate-900">Vers ophalen met Pro-sleutel</span>
+                            </figcaption>
+                            <div class="overflow-x-auto bg-slate-900 p-4">
+                                <pre id="exampleCurlPro" class="font-mono text-xs leading-relaxed text-slate-300">curl -sS "{{CANONICAL_ORIGIN}}/api/verse\
+  ?book=Johannes&amp;chapter=3&amp;verse=16\
+  &amp;version=nbg1951" \
+  -H "Accept: application/json" \
+  -H "x-api-key: JOUW-SLEUTEL"</pre>
+                            </div>
+                        </figure>
+                        <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
+                            <figcaption class="border-b border-slate-200 bg-white px-4 py-3">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">JavaScript / fetch</span>
+                                <span class="mt-0.5 block text-sm font-medium text-slate-900">Pro-request met header</span>
+                            </figcaption>
+                            <div class="overflow-x-auto bg-slate-900 p-4">
+                                <pre class="font-mono text-xs leading-relaxed text-slate-300">fetch("{{CANONICAL_ORIGIN}}/api/verse\
+  ?book=Johannes&amp;chapter=3&amp;verse=16", {
+  headers: {
+    Accept: "application/json",
+    "x-api-key": "JOUW-SLEUTEL",
+  },
+});</pre>
+                            </div>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Saved key panel (for existing Pro users) -->
+                <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm fade-in-section" id="savedApiKeyPanel">
+                    <label for="savedApiKeyInput" class="block text-sm font-semibold text-slate-800">Heb je al een Pro-sleutel? Sla hem op in je browser</label>
+                    <p class="mt-1 text-xs text-slate-500">Plak je sleutel en klik <strong>Onthouden</strong>. De pagina toont dan "Pro actief" en je abonnementsdetails.</p>
                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <input type="password" id="savedApiKeyInput" name="savedApiKeyInput" autocomplete="off" placeholder="Plak je API-sleutel"
-                            class="w-full flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:min-w-[240px]">
+                        <input type="password" id="savedApiKeyInput" name="savedApiKeyInput" autocomplete="off" placeholder="Plak je API-sleutel (UUID-formaat)"
+                            class="w-full flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:min-w-[240px]">
                         <div class="flex flex-wrap gap-2">
-                            <button type="button" id="btnSaveApiKeyLocal" class="rounded-lg bg-slate-900 px-3 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Onthouden</button>
-                            <button type="button" id="btnClearSavedApiKey" class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Vergeet sleutel</button>
+                            <button type="button" id="btnSaveApiKeyLocal" class="rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-medium text-white hover:bg-slate-700">Onthouden</button>
+                            <button type="button" id="btnClearSavedApiKey" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Vergeet sleutel</button>
                         </div>
                     </div>
                     <p id="savedApiKeyHint" class="mt-2 hidden text-xs text-slate-600" aria-live="polite"></p>
-                    </div>
                 </div>
-                <div id="pro-gebruik" class="mb-8 w-full scroll-mt-24 rounded-xl border border-blue-200 bg-white p-6 shadow-sm lg:p-8">
-                <h3 class="mb-2 text-lg font-semibold tracking-tight text-slate-900">Hoe gebruik je Pro na aankoop?</h3>
-                <p class="mb-6 max-w-4xl text-sm leading-relaxed text-slate-600">
-                    Pro gebruik je overal met de <strong class="font-medium text-slate-800">HTTP-header</strong>
-                    <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.8125rem] text-slate-900">x-api-key</code>
-                    — <strong>niet</strong> als vaste query-parameter in de URL. Zie stap-voor-stap hieronder en de voorbeeldcommando’s.
+
+                <!-- Portal text link for non-pro users -->
+                <p class="mt-6 text-center text-sm text-slate-500 fade-in-section">
+                    Al Pro-klant?
+                    <button type="button" id="btnPortalTextLink" class="font-medium text-blue-600 hover:underline">Open het Stripe Customer Portal</button>
+                    om je abonnement te beheren.
                 </p>
-                <ol class="mb-10 max-w-4xl list-decimal space-y-4 pl-5 text-sm leading-relaxed text-slate-700">
-                    <li>
-                        <strong class="text-slate-900">Sleutel verkrijgen</strong> — Na Stripe Checkout eenmalig op deze site: blauwe balk met “kopieer sleutel” (sessie in de URL), of plak de sleutel die je hebt bewaard.
-                    </li>
-                    <li>
-                        <strong class="text-slate-900">“Pro actief” op deze pagina</strong> — Plak hierboven, klik <strong>Onthouden</strong> óf klik buiten het veld na plakken. Dan roept de pagina
-                        <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.8125rem] text-slate-900">GET /billing/status</code>
-                        aan om je abonnement te tonen.
-                    </li>
-                    <li>
-                        <strong class="text-slate-900">Je app of scripts</strong> — Voeg bij elke API-request de header toe:
-                        <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.8125rem] text-slate-900">x-api-key: JOUW-SLEUTEL</code>.
-                        Zo krijg je Pro-limieten zodra de server billing afdwingt
-                        (<code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.8125rem] text-slate-900">BILLING_ENFORCED=true</code>).
-                    </li>
-                    <li>
-                        <strong class="text-slate-900">Betalen opzeggen / facturen</strong> — Onderaan: <strong>Abonnement beheren</strong> → Stripe-klantportaal met het <strong>zelfde e-mailadres</strong> als bij Checkout.
-                    </li>
-                </ol>
-                <div>
-                    <h4 class="mb-4 text-sm font-semibold text-slate-900">Codevoorbeelden</h4>
-                    <p class="mb-6 max-w-4xl text-sm text-slate-600">Zelfde patronen als je in productie gebruikt: vervang <span class="font-mono font-medium text-slate-800">JOUW-SLEUTEL</span> door je echte key en pas het basis-URL aan indien nodig.</p>
-                    <div class="grid gap-6 lg:grid-cols-2">
-                        <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm ring-1 ring-slate-200/80">
-                            <figcaption class="border-b border-slate-200 bg-white px-4 py-3">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Terminal</span>
-                                <span class="mt-1 block text-sm font-medium text-slate-900">curl - GET beschikbare vertalingen</span>
-                                <span class="mt-0.5 block font-mono text-xs text-slate-500">{{CANONICAL_ORIGIN}}/api/versions</span>
-                            </figcaption>
-                            <div class="pro-gebruik-code-shell">
-                                <div class="pro-gebruik-code-panel">
-                                    <pre id="exampleCurlPro">curl -sS "{{CANONICAL_ORIGIN}}/api/versions" \
-  -H "Accept: application/json" \
-  -H "x-api-key: JOUW-SLEUTEL"</pre>
-                                </div>
-                            </div>
-                        </figure>
-                        <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm ring-1 ring-slate-200/80">
-                            <figcaption class="border-b border-slate-200 bg-white px-4 py-3">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Terminal</span>
-                                <span class="mt-1 block text-sm font-medium text-slate-900">curl - POST parse referentie (JSON-body)</span>
-                                <span class="mt-0.5 block font-mono text-xs text-slate-500">{{CANONICAL_ORIGIN}}/api/parse/reference</span>
-                            </figcaption>
-                            <div class="pro-gebruik-code-shell">
-                                <div class="pro-gebruik-code-panel">
-                                    <pre>curl -sS -X POST "{{CANONICAL_ORIGIN}}/api/parse/reference" \
-  -H "Accept: application/json" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: JOUW-SLEUTEL" \
-  -d '{
-    "reference": "Johannes 3:16",
-    "version": "nbg1951"
-  }'</pre>
-                                </div>
-                            </div>
-                        </figure>
-                        <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm ring-1 ring-slate-200/80 lg:col-span-2">
-                            <figcaption class="border-b border-slate-200 bg-white px-4 py-3">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Browser / Node</span>
-                                <span class="mt-1 block text-sm font-medium text-slate-900">fetch - gebruik lokale opslag (zelfde key als hierboven opgeslagen)</span>
-                                <span class="mt-0.5 block font-mono text-xs text-slate-500">GET …/api/versions · header Accept + x-api-key</span>
-                            </figcaption>
-                            <div class="pro-gebruik-code-shell">
-                                <div class="pro-gebruik-code-panel">
-                                    <pre>fetch("/api/versions", {
-  method: "GET",
-  headers: {
-    Accept: "application/json",
-    "x-api-key": localStorage.getItem("bijbelapi_api_key") ?? "",
-  },
-});</pre>
-                                </div>
-                            </div>
-                        </figure>
-                    </div>
-                </div>
-                </div>
+
+                <p id="checkoutError" class="mt-4 hidden text-sm text-red-600 text-center" role="alert"></p>
+                <div id="billingDebugLog" class="debug-json-pre mt-3 hidden max-h-52 overflow-auto"></div>
             </div>
-
-            <div id="billingProActivePanel" class="mb-8 hidden max-w-2xl rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-                <p class="text-sm font-semibold text-emerald-950">Je hebt een actief Pro-abonnement</p>
-                <p id="billingProActiveDetail" class="mt-1 text-sm text-emerald-900"></p>
-                <p class="mt-3 text-xs text-emerald-800">Beheer betaling en facturen via het Stripe-klantportaal — zelfde e-mail als bij Checkout. Voor gebruik in code: <a href="#pro-gebruik" class="font-medium text-emerald-950 underline">header <code class="rounded bg-emerald-100/80 px-0.5 font-mono text-emerald-950">x-api-key</code> — zie uitleg</a>.</p>
-            </div>
-
-            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <article class="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-6 sm:col-span-2 lg:col-span-1">
-                    <p class="mb-1 text-sm font-semibold text-blue-700">Free</p>
-                    <h3 class="mb-1 text-3xl font-semibold tracking-tight">€0</h3>
-                    <p class="mb-4 text-xs text-slate-500">per maand</p>
-                    <p class="mb-4 flex-grow text-sm leading-relaxed text-slate-600">Ideaal om endpoints uit te proberen en integraties te testen.</p>
-                    <ul class="mb-6 space-y-2 text-sm text-slate-700">
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Kern-API: verzen, passages, zoeken, dagtekst</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Geen creditcard</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Maximaal <strong class="font-semibold text-slate-800">{{FREE_TIER_DAILY_LIMIT}} requests per dag</strong> per IP</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Perfect voor testen en kleine projecten</li>
-                    </ul>
-                    <a href="/docs" class="mt-auto inline-flex justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                        Start met de docs
-                    </a>
-                </article>
-
-                <article id="proSubscribeMonthlyCard" class="relative flex min-w-0 flex-col rounded-xl border-2 border-slate-900 bg-white p-6 shadow-sm">
-                    <p class="absolute right-4 top-4 rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-white">Populair</p>
-                    <p class="mb-1 text-sm font-semibold text-slate-900">BijbelAPI Pro</p>
-                    <h3 class="mb-1 text-3xl font-semibold tracking-tight">€9,99</h3>
-                    <p class="mb-4 text-xs text-slate-500">per maand · maandelijks opzegbaar</p>
-                    <p class="mb-4 flex-grow text-sm leading-relaxed text-slate-600">Volledige productiekracht met hogere limieten en API-sleutel na betaling.</p>
-                    <ul class="mb-6 space-y-2 text-sm text-slate-700">
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> <strong class="font-semibold text-slate-800">tot {{PRO_TIER_DAILY_LIMIT}} requests/dag*</strong> per API-sleutel (fair use)</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Stripe Customer Portal</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Prioriteit bij groei en support</li>
-                    </ul>
-                    <button type="button" id="btnCheckoutMonthly" class="mt-auto inline-flex w-full justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-medium text-white hover:bg-slate-800">
-                        Abonneer maandelijks
-                    </button>
-                </article>
-
-                <article id="proSubscribeYearlyCard" class="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-6">
-                    <p class="mb-1 text-sm font-semibold text-slate-900">BijbelAPI Pro</p>
-                    <h3 class="mb-1 text-3xl font-semibold tracking-tight">€99,99</h3>
-                    <p class="mb-4 text-xs text-slate-500">per jaar · twee maanden voordeel t.o.v. maandprijs</p>
-                    <p class="mb-4 flex-grow text-sm leading-relaxed text-slate-600">Zelfde voordelen als maandelijks, met jaarpakket voor vaste teams en apps.</p>
-                    <ul class="mb-6 space-y-2 text-sm text-slate-700">
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Alles uit Pro maandelijks</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> <strong class="font-semibold text-slate-800">tot {{PRO_TIER_DAILY_LIMIT}} requests/dag*</strong> per API-sleutel</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Eén factuur per jaar</li>
-                        <li class="flex gap-2"><span class="text-emerald-600">✓</span> Geschikt voor langlopende productie</li>
-                    </ul>
-                    <button type="button" id="btnCheckoutYearly" class="mt-auto inline-flex w-full justify-center rounded-lg border border-slate-900 bg-white px-4 py-3 text-sm font-medium text-slate-900 hover:bg-slate-50">
-                        Abonneer jaarlijks
-                    </button>
-                </article>
-            </div>
-            <p class="mt-4 text-xs text-slate-500" id="proFairUseFootnote">
-                * Fair-use limiet per API-sleutel per dag voor platformstabiliteit (nu {{PRO_TIER_DAILY_LIMIT}}). Neem contact op bij structureel hogere load.
-            </p>
-            <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                <strong>Belangrijk:</strong> bij misbruik (zoals geautomatiseerde overbelasting, scraping op grote schaal of pogingen om limieten te omzeilen) kunnen requests worden beperkt, API-sleutels tijdelijk worden geblokkeerd of accounts worden geschorst om de stabiliteit van het platform te beschermen.
-            </div>
-
-            <div class="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
-                <div class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-5" id="checkoutEmailBlock">
-                    <label for="checkoutEmail" class="block text-sm font-medium text-slate-800">E-mailadres voor Checkout</label>
-                    <p class="mt-1 text-xs text-slate-500">Zelfde adres voor je Stripe-factuur en je API-account. Vereist voor Pro.</p>
-                    <input type="email" id="checkoutEmail" name="checkoutEmail" autocomplete="email" placeholder="jij@voorbeeld.nl"
-                        class="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600">
-                    <p id="checkoutHint" class="mt-2 text-xs text-amber-700">Vul eerst een geldig e-mailadres in om te kunnen betalen.</p>
-                </div>
-                <div class="flex min-h-0 min-w-0 flex-col rounded-xl border border-slate-200 bg-slate-50 p-5">
-                    <h3 class="mb-2 text-base font-semibold text-slate-900">Abonnement beheren</h3>
-                    <p class="text-sm leading-relaxed text-slate-600">Wijzig je betaalmethode, download facturen of zeg op via het Stripe Customer Portal. Gebruik het <strong class="font-medium text-slate-800">zelfde e-mailadres</strong> als bij je oorspronkelijke Checkout.</p>
-                    <input type="email" id="portalEmail" name="portalEmail" autocomplete="email" placeholder="jij@voorbeeld.nl"
-                        class="mt-4 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600">
-                    <button type="button" id="btnPortal" class="mt-3 inline-flex w-full justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-100">
-                        Open klantportaal
-                    </button>
-                    <p id="portalError" class="mt-3 hidden text-sm text-red-600" role="alert"></p>
-                </div>
-            </div>
-
-            <p id="checkoutError" class="mt-4 hidden text-sm text-red-600" role="alert"></p>
-            <div id="billingDebugLog" class="debug-json-pre mt-3 hidden max-h-52 overflow-auto"></div>
         </section>
+
+        <!-- ============================================================
+             CHECKOUT MODAL
+        ============================================================ -->
+        <dialog id="checkoutModal" class="fixed inset-0 z-50 m-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-blue-600">BijbelAPI Pro</p>
+                    <p class="mt-0.5 text-base font-semibold text-slate-900" id="modalPlanLabel">Pro Maandelijks — €9,99 / maand</p>
+                </div>
+                <button type="button" id="btnModalClose" onclick="closeCheckoutModal()" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Sluiten">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="px-6 py-5">
+                <ul class="mb-5 space-y-2 text-sm text-slate-600">
+                    <li class="flex items-center gap-2"><svg class="h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Directe toegang tot je API-sleutel na betaling</li>
+                    <li class="flex items-center gap-2"><svg class="h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>100.000 requests per dag per sleutel</li>
+                    <li class="flex items-center gap-2"><svg class="h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Maandelijks opzegbaar via Stripe Portal</li>
+                </ul>
+                <label for="modalCheckoutEmail" class="block text-sm font-medium text-slate-700">E-mailadres</label>
+                <p class="mt-0.5 text-xs text-slate-500">Voor je Stripe-factuur en je Pro-account. Bewaar dit adres — je hebt het nodig voor het Customer Portal.</p>
+                <input type="email" id="modalCheckoutEmail" name="modalCheckoutEmail" autocomplete="email" placeholder="jij@voorbeeld.nl"
+                    class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600">
+                <p id="modalCheckoutError" class="mt-2 hidden text-sm text-red-600" role="alert"></p>
+                <button type="button" id="btnModalPay" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    Doorgaan naar Stripe Checkout
+                </button>
+                <p class="mt-3 text-center text-xs text-slate-400">
+                    Beveiligd door <strong>Stripe</strong> &mdash; iDEAL, Mastercard, Visa
+                </p>
+            </div>
+        </dialog>
+
+        <!-- ============================================================
+             PORTAL MODAL
+        ============================================================ -->
+        <dialog id="portalModal" class="fixed inset-0 z-50 m-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Klantportaal</p>
+                    <p class="mt-0.5 text-base font-semibold text-slate-900">Abonnement beheren</p>
+                </div>
+                <button type="button" id="btnPortalModalClose" onclick="closePortalModal()" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Sluiten">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="px-6 py-5">
+                <p class="mb-4 text-sm text-slate-600">Vul het e-mailadres in waarmee je Pro hebt afgenomen. Je wordt doorgestuurd naar het Stripe Customer Portal.</p>
+                <label for="portalModalEmail" class="block text-sm font-medium text-slate-700">E-mailadres</label>
+                <input type="email" id="portalModalEmail" name="portalModalEmail" autocomplete="email" placeholder="jij@voorbeeld.nl"
+                    class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600">
+                <p id="portalModalError" class="mt-2 hidden text-sm text-red-600" role="alert"></p>
+                <button type="button" id="btnPortalModalSubmit" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-900 bg-white px-4 py-3 text-sm font-bold text-slate-900 hover:bg-slate-50 transition-colors">
+                    Open Stripe Customer Portal
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </button>
+                <p id="portalError" class="mt-3 hidden text-sm text-red-600" role="alert"></p>
+            </div>
+        </dialog>
+
+        <style>
+            dialog[open] { display: flex; flex-direction: column; }
+            dialog::backdrop { animation: backdrop-fade 0.2s ease both; }
+            @keyframes backdrop-fade { from { opacity: 0; } to { opacity: 1; } }
+            dialog[open] { animation: modal-pop 0.2s ease both; }
+            @keyframes modal-pop { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: none; } }
+        </style>
