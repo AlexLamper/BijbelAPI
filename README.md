@@ -1,94 +1,89 @@
 # 📖 BijbelAPI
 
-<p>
-  <img src="https://img.shields.io/badge/Version-v1.2-blue?style=for-the-badge" alt="Version" />
-  <img src="https://img.shields.io/github/license/AlexLamper/BijbelAPI?style=for-the-badge" alt="License" />
-  <img src="https://img.shields.io/github/issues/AlexLamper/BijbelAPI?style=for-the-badge" alt="Issues" />
-</p>
+**Dé #1 Nederlandse Bijbel API voor ontwikkelaars.**
 
-**Dé #1 Nederlandse Bijbel API voor ontwikkelaars.**  
-Een REST API om Bijbelteksten en Nederlandstalige commentaargegevens op te vragen over meerdere ondersteunde vertalingen. Gebouwd voor ontwikkelaars, theologen, studenten, kerken en digitale Bijbelprojecten.
+*Een REST API om Bijbelteksten en Nederlandstalige commentaargegevens op te vragen over meerdere ondersteunde vertalingen. Bedoeld voor ontwikkelaars, theologen, studenten, kerken en digitale Bijbelprojecten.*
 
 ---
 
-## ✨ Features
+## Functies
 
-- 🔀 **Random verses** retrieval  
-- 🔍 **Text search** across the loaded Bible text  
-- 📚 **Structure overview** of books, chapters, and verses  
-- 📖 **Specific verses or passages** retrieval  
-- 📅 **Daily text** generation (optional with seed)
-- 🧠 **Smart reference parsing** for complex Bible references  
-- 📝 **Commentary endpoint** on chapters and verses (Dutch source)  
-- 💳 **Stripe billing endpoints** for paid API access  
-
----
-
-## 🌐 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Homepage with API information + link to docs |
-| GET | `/health` | Health check endpoint |
-| GET | `/api/random` | Random verse |
-| GET | `/api/verse?book=...&chapter=...&verse=...` | Specific verse |
-| GET | `/api/passage?book=...&chapter=...&start=...&end=...` | Multiple verses |
-| GET | `/api/books` | All books |
-| GET | `/api/chapters?book=...` | Chapters in book |
-| GET | `/api/verses?book=...&chapter=...` | Verse numbers in chapter |
-| GET | `/api/search?query=...` | Search in Bible text |
-| GET | `/api/daytext?seed=...` | Daily text, optional seed |
-| GET | `/api/versions` | Available translations |
-| GET | `/api/chapter?book=...&chapter=...` | Entire chapter |
-| GET | `/api/commentary?source=...&book=...&chapter=...` | Get commentary for an entire chapter (e.g. `matthew_henry_nl`) |
-| GET | `/api/commentary?source=...&book=...&chapter=...&verse=...` | Get commentary for a specific verse (e.g. `matthew_henry_nl`) |
-| **POST** | **`/api/parse/reference`** | **Parse complex Bible reference** |
-| **GET** | **`/api/parse/reference/{ref}`** | **Parse reference via URL** |
-| **POST** | **`/api/parse/references`** | **Parse multiple references** |
-| POST | `/billing/checkout-session` | Create Stripe checkout session |
-| POST | `/billing/portal-session` | Create Stripe customer portal session |
-| GET | `/billing/status` | Billing status (send header **`x-api-key`**, not a query param) |
-| POST | `/stripe/webhook` | Stripe webhook receiver |
-
-👉 All routes are documented via:
-- `/docs` – Swagger UI
-- `/redoc` – ReDoc UI
+- 🔀 **Willekeurige verzen** ophalen  
+- 🔍 **Zoeken in bijbeltekst** over de geladen vertalingen  
+- 📚 **Structuuroverzicht** van boeken, hoofdstukken en verzen  
+- 📖 **Specifieke verzen of passages** opvragen  
+- 📅 **Dagtekst** (optioneel met vaste seed voor herhaling)
+- 🧠 **Slim parsen** van complexe bijbelverwijzingen  
+- 📝 **Commentaar-endpoint** voor hoofdstukken en verzen (Nederlandstalige bron) 
 
 ---
 
-## 🧠 Smart Reference Parsing
+## 🌐 API-endpoints
 
-The parsing endpoints handle complex Bible references that traditional APIs often struggle with:
 
-### Supported Reference Types
+| Methode  | Endpoint                                                    | Beschrijving                                                |
+| -------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
+| GET      | `/`                                                         | Startpagina met uitleg en link naar documentatie            |
+| GET      | `/health`                                                   | Health check                                                |
+| GET      | `/api/random`                                               | Willekeurig vers                                            |
+| GET      | `/api/verse?book=...&chapter=...&verse=...`                 | Specifiek vers                                              |
+| GET      | `/api/passage?book=...&chapter=...&start=...&end=...`       | Meerdere verzen (bereik)                                    |
+| GET      | `/api/books`                                                | Alle boeken                                                 |
+| GET      | `/api/chapters?book=...`                                    | Hoofdstukken in een boek                                    |
+| GET      | `/api/verses?book=...&chapter=...`                          | Versnummers in een hoofdstuk                                |
+| GET      | `/api/search?query=...`                                     | Zoeken in bijbeltekst                                       |
+| GET      | `/api/daytext?seed=...`                                     | Dagtekst, optioneel met seed                                |
+| GET      | `/api/versions`                                             | Beschikbare vertalingen + metadata                          |
+| GET      | `/api/chapter?book=...&chapter=...`                         | Hele hoofdstuk                                              |
+| GET      | `/api/commentary?source=...&book=...&chapter=...`           | Commentaar op een heel hoofdstuk (bijv. `matthew_henry_nl`) |
+| GET      | `/api/commentary?source=...&book=...&chapter=...&verse=...` | Commentaar op één vers                                      |
+| **POST** | `**/api/parse/reference`**                                  | **Complexe verwijzing parseren (JSON-body)**                |
+| **GET**  | `**/api/parse/reference/{ref}`**                            | **Verwijzing via URL parseren**                             |
+| **POST** | `**/api/parse/references`**                                 | **Meerdere verwijzingen tegelijk**                          |
 
-| Type | Example | Description |
-|------|---------|-------------|
-| **Discontinuous ranges** | `Psalm 104:26-36,37` | Multiple verse ranges |
-| **Cross-chapter** | `John 3:16-4:1` | References spanning chapters |
-| **Chapter-only** | `Philemon 1-21` | Entire chapter ranges |
-| **Optional verses** | `Luke 1:39-45[46-55]` | Main + optional verses |
-| **Verse suffixes** | `Habakkuk 3:2-19a` | References with letter suffixes |
-| **End references** | `Jeremiah 18:5-end` | From verse to end of chapter |
 
-### Usage Examples
+De **publieke BijbelAPI** staat in:
+
+- `/docs` – Swagger UI  
+- `/redoc` – ReDoc
+
+---
+
+## Slim verwijzingen parsen
+
+De parse-endpoints ondersteunen complexe bijbelverwijzingen die traditionele API’s vaak niet goed aankunnen:
+
+### Ondersteunde verwijzingstypen
+
+
+| Type                            | Voorbeeld              | Uitleg                                      |
+| ------------------------------- | ---------------------- | ------------------------------------------- |
+| **Niet-aaneengesloten reeksen** | `Psalm 104:26-36,37`   | Meerdere versbereiken                       |
+| **Over hoofdstukken heen**      | `Johannes 3:16-4:1`    | Van het ene hoofdstuk naar het andere       |
+| **Alleen hoofdstuk**            | `Filemon 1-21`         | Hele hoofdstuk als bereik                   |
+| **Optionele verzen**            | `Lukas 1:39-45[46-55]` | Hoofdtekst plus optioneel blok tussen `[ ]` |
+| **Lettersuffix bij vers**       | `Habakuk 3:2-19a`      | Verzen met lettersuffix                     |
+| **“Tot einde hoofdstuk”**       | `Jeremia 18:5-end`     | Van dit vers tot het eind van het hoofdstuk |
+
+
+### Voorbeelden
 
 ```bash
-# Parse a complex reference
+# Eén complexe verwijzing (GET)
 curl "https://bijbelapi.com/api/parse/reference/Psalm%20104:26-36,37?version=nbg1951"
 
-# Parse via POST with custom version
+# Parse via POST met gekozen vertaling
 curl -X POST "https://bijbelapi.com/api/parse/reference" \
   -H "Content-Type: application/json" \
-  -d '{"reference": "Luke 1:39-45[46-55]", "version": "nld1939"}'
+  -d '{"reference": "Lukas 1:39-45[46-55]", "version": "nld1939"}'
 
-# Parse multiple references
+# Meerdere verwijzingen
 curl -X POST "https://bijbelapi.com/api/parse/references" \
   -H "Content-Type: application/json" \
-  -d '{"references": ["Psalm 104:26-36,37", "Jeremiah 18:1-11"], "version": "sv"}'
+  -d '{"references": ["Psalm 104:26-36,37", "Jeremia 18:1-11"], "version": "sv"}'
 ```
 
-### Response Format
+### Responsvoorbeeld
 
 ```json
 {
@@ -97,41 +92,42 @@ curl -X POST "https://bijbelapi.com/api/parse/references" \
   "book": "Psalms",
   "chapter": "104",
   "verses": [
-    {"verse": "26", "text": "There the ships go to and fro..."},
-    {"verse": "27", "text": "All creatures look to you..."}
+    {"verse": "26", "text": "…"},
+    {"verse": "27", "text": "…"}
   ],
-  "formatted_text": "26 There the ships go to and fro... 27 All creatures look to you..."
+  "formatted_text": "26 … 27 …"
 }
 ```
 
 ---
 
-## 🌍 Supported Translations
+## Ondersteunde vertalingen
 
-Current supported translation keys:
+Huidige vertaalcodes:
 
 - `nbg1951` (Nederlandse Bijbelvertaling NBG 1951)
 - `nld1939` (Nederlandse Bijbelvertaling NLD 1939)
 - `sv` (Statenvertaling)
 - `bb` (BasisBijbel)
 
-## 🧩 Expansion
+## Verdere uitbreiding
 
-Planned next steps:
-- Adding more Dutch and multilingual Bible datasets.
-- Adding richer plan/usage controls per API key.
-- Improving technical and product documentation.
-- Expanding tooling around data transformation and validation.
+Geplande richtingen:
 
----
-
-## 📜 License
-
-This API is licensed under the [MIT License](LICENSE).
+- Meer Nederlandse en meertalige bijbeldatasets toevoegen.
+- Rijkere limieten en gebruiksregeling per API-sleutel.
+- Technische en productdocumentatie verder verbeteren.
+- Meer tooling rond databeheer, transformatie en validatie.
 
 ---
 
-## 📎 Contact
+## Licentie
+
+Deze API staat onder de [MIT-licentie](LICENSE).
+
+---
+
+## Contact
 
 - GitHub: [@AlexLamper](https://github.com/AlexLamper)
 - Mail: `devlamper06@gmail.com`
@@ -139,6 +135,6 @@ This API is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 📌 Version
+## 📌 Versie
 
-**Current Version**: `v1.2`
+**Huidige versie:** `v1.2`

@@ -73,31 +73,9 @@
             var m = byId('btnCheckoutMonthly');
             var y = byId('btnCheckoutYearly');
             var p = byId('btnPortal');
-            var mongoBtn = byId('btnMongoPing');
             if (m) m.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_monthly'); };
             if (y) y.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_yearly'); };
             if (p) p.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackPortal(); };
-            if (mongoBtn) mongoBtn.onclick = function (e) {
-                if (e && e.preventDefault) e.preventDefault();
-                var out = byId('mongoPingOut');
-                if (out) {
-                    out.classList.remove('hidden');
-                    out.textContent = 'Bezig met verbinden…';
-                }
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', '/api/mongo-status', true);
-                xhr.setRequestHeader('Accept', 'application/json');
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState !== 4) return;
-                    var data = null;
-                    try { data = JSON.parse(xhr.responseText || '{}'); } catch (err) { data = null; }
-                    if (out) out.textContent = data ? JSON.stringify(data, null, 2) : xhr.responseText || '(geen antwoord)';
-                };
-                xhr.onerror = function () {
-                    if (out) out.textContent = '{"ok":false,"error":"Netwerkfout"}';
-                };
-                xhr.send();
-            };
         }
 
         if (document.readyState === 'loading') {

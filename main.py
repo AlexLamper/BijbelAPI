@@ -87,6 +87,8 @@ DEBUG_BILLING = os.getenv("DEBUG_BILLING", "false").lower() == "true"
 BILLING_TRACE_LOG = os.getenv("BILLING_TRACE_LOG", "false").lower() == "true"
 # Optioneel: log elke geslaagde API-request met Pro-key (veel logvolume; alleen tijdelijk aanzetten).
 BILLING_TRACE_REQUESTS = os.getenv("BILLING_TRACE_REQUESTS", "false").lower() == "true"
+# Optioneel diagnostisch endpoint voor Mongo-connectiviteit — standaard uit (niet voor publiek gebruik).
+EXPOSE_MONGO_STATUS = os.getenv("EXPOSE_MONGO_STATUS", "false").lower() == "true"
 
 
 def _billing_should_trace() -> bool:
@@ -460,8 +462,8 @@ def normalize_commentary_book(source_key: str, book_name: str):
     return None
 
 # --- SEO: crawlers expect these at site root (not only under /site/)
-@app.get("/robots.txt", response_class=PlainTextResponse)
-@app.head("/robots.txt", response_class=PlainTextResponse)
+@app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
+@app.head("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
 def robots_txt():
     base = public_base_url()
     body = "\n".join(
@@ -476,8 +478,8 @@ def robots_txt():
     return PlainTextResponse(body, media_type="text/plain; charset=utf-8")
 
 
-@app.get("/sitemap.xml")
-@app.head("/sitemap.xml")
+@app.get("/sitemap.xml", include_in_schema=False)
+@app.head("/sitemap.xml", include_in_schema=False)
 def sitemap_xml():
     base = public_base_url()
     lastmod = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -498,8 +500,8 @@ def sitemap_xml():
     return Response(content=xml_body, media_type="application/xml; charset=utf-8")
 
 
-@app.get("/humans.txt", response_class=PlainTextResponse)
-@app.head("/humans.txt", response_class=PlainTextResponse)
+@app.get("/humans.txt", response_class=PlainTextResponse, include_in_schema=False)
+@app.head("/humans.txt", response_class=PlainTextResponse, include_in_schema=False)
 def humans_txt():
     path = os.path.join(BASE_DIR, "site", "humans.txt")
     if not os.path.exists(path):
@@ -508,8 +510,8 @@ def humans_txt():
         return PlainTextResponse(f.read(), media_type="text/plain; charset=utf-8")
 
 
-@app.get("/favicon.ico")
-@app.head("/favicon.ico")
+@app.get("/favicon.ico", include_in_schema=False)
+@app.head("/favicon.ico", include_in_schema=False)
 def favicon():
     """
     Serve favicon from a stable root path expected by browsers.
@@ -526,20 +528,20 @@ def favicon():
 
 # --- Serve index.html on /
 # HEAD is required for Cloudflare and many probes; GET-only returns 405.
-@app.get("/", response_class=HTMLResponse)
-@app.head("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+@app.head("/", response_class=HTMLResponse, include_in_schema=False)
 def serve_index():
     return _inject_canonical_html("index.html")
 
 
-@app.get("/privacy.html", response_class=HTMLResponse)
-@app.head("/privacy.html", response_class=HTMLResponse)
+@app.get("/privacy.html", response_class=HTMLResponse, include_in_schema=False)
+@app.head("/privacy.html", response_class=HTMLResponse, include_in_schema=False)
 def privacy_page():
     return _inject_canonical_html("privacy.html")
 
 
-@app.get("/bron.html", response_class=HTMLResponse)
-@app.head("/bron.html", response_class=HTMLResponse)
+@app.get("/bron.html", response_class=HTMLResponse, include_in_schema=False)
+@app.head("/bron.html", response_class=HTMLResponse, include_in_schema=False)
 def bron_page():
     return _inject_canonical_html("bron.html")
 
@@ -550,11 +552,13 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/api/mongo-status")
-@app.head("/api/mongo-status")
+@app.get("/api/mongo-status", include_in_schema=False)
+@app.head("/api/mongo-status", include_in_schema=False)
 @limiter.limit("20/minute")
 def mongo_status_public(request: Request):
-    """Publieke ping naar MongoDB Atlas (geen secrets in response)."""
+    """MongoDB-connectiviteit; alleen actief bij EXPOSE_MONGO_STATUS=true (niet voor publiek scraping)."""
+    if not EXPOSE_MONGO_STATUS:
+        raise HTTPException(status_code=404, detail="Niet gevonden")
     return billing_db.ping_mongo()
 
 # --- Existing Bible endpoints (unchanged) ---
@@ -891,7 +895,7 @@ def ensure_paid_access(request: Request, key: Optional[str]) -> None:
             plan=subscription.get("plan_name"),
         )
 
-@app.get("/secure-data")
+@app.get("/secure-data", include_in_schema=False)
 @limiter.limit("10/minute")
 def secure_data(request: Request, _: str = Depends(verify_api_key)):
     return {"message": "Je bent geauthenticeerd!"}
@@ -990,7 +994,7 @@ def record_processed_event(event_id: str, event_type: str) -> bool:
     return billing_db.mongo_record_webhook_event(db, event_id, event_type)
 
 
-@app.post("/billing/checkout-session")
+@app.post("/billing/checkout-session", include_in_schema=False)
 @limiter.limit("10/minute")
 def create_checkout_session(request: Request, payload: CheckoutSessionRequest):
     if not STRIPE_SECRET_KEY:
@@ -1032,7 +1036,7 @@ def create_checkout_session(request: Request, payload: CheckoutSessionRequest):
         raise HTTPException(status_code=400, detail=f"Stripe checkout mislukt: {exc}")
 
 
-@app.post("/billing/portal-session")
+@app.post("/billing/portal-session", include_in_schema=False)
 @limiter.limit("10/minute")
 def create_portal_session(request: Request, payload: PortalSessionRequest):
     if not STRIPE_SECRET_KEY:
@@ -1070,7 +1074,7 @@ def create_portal_session(request: Request, payload: PortalSessionRequest):
         raise HTTPException(status_code=400, detail=f"Stripe portal mislukt: {exc}")
 
 
-@app.get("/billing/checkout-success")
+@app.get("/billing/checkout-success", include_in_schema=False)
 @limiter.limit("30/minute")
 def billing_checkout_success(request: Request, session_id: str = Query(..., min_length=10, max_length=200)):
     """Poll na redirect van Stripe: levert API-sleutel zodra webhook + Mongo klaar zijn."""
@@ -1122,7 +1126,7 @@ def billing_checkout_success(request: Request, session_id: str = Query(..., min_
     }
 
 
-@app.get("/billing/status")
+@app.get("/billing/status", include_in_schema=False)
 @limiter.limit("30/minute")
 def billing_status(request: Request, key: str = Security(api_key_header)):
     billing_trace("billing_status:request", api_key=_mask_api_key_for_log(key))
@@ -1164,7 +1168,7 @@ def billing_status(request: Request, key: str = Security(api_key_header)):
     return body
 
 
-@app.get("/billing/plans")
+@app.get("/billing/plans", include_in_schema=False)
 @limiter.limit("30/minute")
 def billing_plans(request: Request):
     return {
@@ -1259,7 +1263,7 @@ def _checkout_session_email(data: dict) -> Optional[str]:
     return None
 
 
-@app.post("/stripe/webhook")
+@app.post("/stripe/webhook", include_in_schema=False)
 @limiter.limit("500/minute")
 async def stripe_webhook(request: Request):
     if not STRIPE_WEBHOOK_SECRET:
@@ -1467,7 +1471,7 @@ async def stripe_webhook(request: Request):
     return {"status": "succes"}
 
 
-@app.get("/billing/debug/config")
+@app.get("/billing/debug/config", include_in_schema=False)
 @limiter.limit("30/minute")
 def billing_debug_config(request: Request):
     """
@@ -1492,7 +1496,7 @@ def billing_debug_config(request: Request):
     }
 
 
-@app.get("/billing/debug/ping")
+@app.get("/billing/debug/ping", include_in_schema=False)
 @limiter.limit("60/minute")
 def billing_debug_ping(request: Request):
     """
@@ -1508,7 +1512,7 @@ def billing_debug_ping(request: Request):
     }
 
 
-@app.get("/billing/debug/email-status")
+@app.get("/billing/debug/email-status", include_in_schema=False)
 @limiter.limit("30/minute")
 def billing_debug_email_status(request: Request, email: str):
     """

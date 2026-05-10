@@ -1,42 +1,195 @@
+<section id="api" class="border-y border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
 
-        <section id="api" class="border-y border-slate-200 bg-white">
-            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-14">
-                <h2 class="mb-3 text-2xl font-semibold tracking-tight">API-overzicht</h2>
-                <p class="mb-6 text-sm text-slate-600">Belangrijkste endpoints voor dagelijkse integratie. Volledige lijst op <a href="/docs" class="font-medium text-blue-700 hover:underline">/docs</a>.</p>
-                <div class="overflow-x-auto rounded-xl border border-slate-200">
-                    <table class="min-w-full text-left text-sm">
-                        <thead class="bg-slate-100 text-slate-700">
-                            <tr>
-                                <th class="px-4 py-3 font-semibold">Methode</th>
-                                <th class="px-4 py-3 font-semibold">Endpoint</th>
-                                <th class="px-4 py-3 font-semibold">Beschrijving</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 bg-white">
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/health</code></td><td class="px-4 py-3">Health check van de API</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/mongo-status</code></td><td class="px-4 py-3">Testverbinding met MongoDB (billing/API-keys)</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/random</code></td><td class="px-4 py-3">Willekeurig vers ophalen</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/daytext</code></td><td class="px-4 py-3">Dagtekst op basis van datum of seed</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/verse</code></td><td class="px-4 py-3">Specifiek vers opvragen</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/passage</code></td><td class="px-4 py-3">Bereik van verzen opvragen</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/chapter</code></td><td class="px-4 py-3">Hele hoofdstuktekst ophalen</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/books</code></td><td class="px-4 py-3">Lijst met bijbelboeken</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/chapters</code></td><td class="px-4 py-3">Lijst met hoofdstukken per boek</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/verses</code></td><td class="px-4 py-3">Lijst met versnummers per hoofdstuk</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/search</code></td><td class="px-4 py-3">Zoeken in bijbeltekst</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/versions</code></td><td class="px-4 py-3">Beschikbare vertalingen + metadata</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/commentary</code></td><td class="px-4 py-3">Nederlands commentaar op hoofdstuk of vers</td></tr>
-                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/api/parse/reference</code></td><td class="px-4 py-3">Bijbelverwijzing parseren</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/api/parse/reference/{reference}</code></td><td class="px-4 py-3">Bijbelverwijzing parseren via URL</td></tr>
-                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/api/parse/references</code></td><td class="px-4 py-3">Meerdere verwijzingen parseren</td></tr>
-                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/billing/checkout-session</code></td><td class="px-4 py-3">Start Stripe Checkout voor Pro</td></tr>
-                            <tr><td class="px-4 py-3">POST</td><td class="px-4 py-3"><code>/billing/portal-session</code></td><td class="px-4 py-3">Open Stripe klantportaal</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/checkout-success?session_id=</code></td><td class="px-4 py-3">Na Checkout: poll tot API-sleutel beschikbaar is</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/status</code></td><td class="px-4 py-3">Abonnementsstatus van API-key (header <code class="text-xs">x-api-key</code>)</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/billing/plans</code></td><td class="px-4 py-3">Beschikbare prijsplannen</td></tr>
-                            <tr><td class="px-4 py-3">GET</td><td class="px-4 py-3"><code>/secure-data</code></td><td class="px-4 py-3">Voorbeeld endpoint met verplichte API-key</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+        <h2 class="mb-3 text-2xl font-semibold tracking-tight">API-overzicht</h2>
+        <p class="mb-6 text-sm text-slate-600">Belangrijkste endpoints voor dagelijkse integratie. Volledige documentatie op <a href="/docs" class="font-medium text-blue-600 hover:underline">/docs</a>.</p>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
+                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
+                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </span>
+                <span><strong class="font-semibold text-slate-700">15</strong> endpoints</span>
             </div>
-        </section>
+            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
+                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
+                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                </span>
+                <span class="inline-block rounded px-2 py-0.5 text-[11px] font-semibold tracking-wide bg-sky-100 text-sky-800">GET</span>
+                <span><strong class="font-semibold text-slate-700">14</strong> methoden</span>
+            </div>
+            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
+                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
+                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                </span>
+                <span class="inline-block rounded px-2 py-0.5 text-[11px] font-semibold tracking-wide bg-emerald-100 text-emerald-800">POST</span>
+                <span><strong class="font-semibold text-slate-700">2</strong> methoden</span>
+            </div>
+            <div class="flex min-h-[2.875rem] min-w-[min(100%,13rem)] flex-1 basis-[12.5rem] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm text-slate-500">
+                <span class="inline-flex h-3 w-3 flex-shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
+                    <svg class="block h-[11px] w-[11px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                </span>
+                <span>Geen auth vereist</span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="min-w-full text-left text-sm">
+                <thead class="bg-slate-100 text-slate-700">
+                    <tr>
+                        <th class="w-20 px-4 py-3 font-semibold">Methode</th>
+                        <th class="w-64 px-4 py-3 font-semibold">Endpoint</th>
+                        <th class="px-4 py-3 font-semibold">Beschrijving</th>
+                        <th class="w-36 px-4 py-3 font-semibold">Categorie</th>
+                    </tr>
+                </thead>
+                <tbody id="api-table-body" class="divide-y divide-slate-100 bg-white text-slate-700">
+                </tbody>
+            </table>
+            <div id="api-empty" class="hidden py-10 text-center text-sm text-slate-400">Geen resultaten gevonden.</div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .api-url-copy { opacity: 0; transition: opacity 0.15s; }
+    tr:hover .api-url-copy { opacity: 1; }
+</style>
+
+<script>
+(function () {
+    var API_ENDPOINTS = [
+        { method: 'GET',  path: '/health',                          desc: 'Health check van de API',                    cat: 'meta' },
+        { method: 'GET',  path: '/api/random',                      desc: 'Willekeurig vers ophalen',                   cat: 'tekst' },
+        { method: 'GET',  path: '/api/daytext',                     desc: 'Dagtekst op basis van datum of seed',        cat: 'tekst' },
+        { method: 'GET',  path: '/api/verse',                       desc: 'Specifiek vers opvragen',                    cat: 'tekst' },
+        { method: 'GET',  path: '/api/passage',                     desc: 'Bereik van verzen opvragen',                 cat: 'tekst' },
+        { method: 'GET',  path: '/api/chapter',                     desc: 'Hele hoofdstuktekst ophalen',                cat: 'tekst' },
+        { method: 'GET',  path: '/api/books',                       desc: 'Lijst met bijbelboeken',                     cat: 'navigatie' },
+        { method: 'GET',  path: '/api/chapters',                    desc: 'Lijst met hoofdstukken per boek',            cat: 'navigatie' },
+        { method: 'GET',  path: '/api/verses',                      desc: 'Lijst met versnummers per hoofdstuk',        cat: 'navigatie' },
+        { method: 'GET',  path: '/api/search',                      desc: 'Zoeken in bijbeltekst',                      cat: 'zoeken' },
+        { method: 'GET',  path: '/api/versions',                    desc: 'Beschikbare vertalingen + metadata',         cat: 'meta' },
+        { method: 'GET',  path: '/api/commentary',                  desc: 'Nederlands commentaar op hoofdstuk of vers', cat: 'tekst' },
+        { method: 'POST', path: '/api/parse/reference',             desc: 'Bijbelverwijzing parseren (via body)',       cat: 'zoeken' },
+        { method: 'GET',  path: '/api/parse/reference/{reference}', desc: 'Bijbelverwijzing parseren via URL',          cat: 'zoeken' },
+        { method: 'POST', path: '/api/parse/references',            desc: 'Meerdere verwijzingen parseren',             cat: 'zoeken' },
+    ];
+
+    var CAT_LABELS = { meta: 'Meta', tekst: 'Tekst', navigatie: 'Navigatie', zoeken: 'Zoeken & parseren' };
+    var CAT_COLORS = {
+        meta:      'bg-slate-100 text-slate-600',
+        tekst:     'bg-amber-50 text-amber-700',
+        navigatie: 'bg-purple-50 text-purple-700',
+        zoeken:    'bg-teal-50 text-teal-700',
+    };
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+        return escapeHtml(str).replace(/'/g, '&#39;');
+    }
+
+    function apiAbsoluteUrl(path) {
+        var p = path.charAt(0) === '/' ? path : '/' + path;
+        try {
+            var o = window.location.origin;
+            if (!o || o === 'null' || o.indexOf('file:') === 0) return p;
+            return o.replace(/\/$/, '') + p;
+        } catch (e) {
+            return p;
+        }
+    }
+
+    function copyTextSafe(text) {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            return navigator.clipboard.writeText(text);
+        }
+        return new Promise(function (resolve, reject) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                var ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                ok ? resolve() : reject(new Error('copy failed'));
+            } catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    document.getElementById('api-table-body').innerHTML = API_ENDPOINTS.map(function (e) {
+        var methodBadge =
+            e.method === 'GET'
+                ? '<span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800">GET</span>'
+                : '<span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-800">POST</span>';
+        var catClass = CAT_COLORS[e.cat] || 'bg-slate-100 text-slate-600';
+        return (
+            '<tr class="group hover:bg-slate-50 transition-colors">' +
+            '<td class="px-4 py-3">' + methodBadge + '</td>' +
+            '<td class="px-4 py-3"><code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800">' +
+            escapeHtml(e.path) +
+            '</code></td>' +
+            '<td class="px-4 py-3">' +
+            '<div class="flex items-center justify-between gap-3">' +
+            '<span class="text-slate-700">' +
+            escapeHtml(e.desc) +
+            '</span>' +
+            '<button type="button" class="api-url-copy flex-shrink-0 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] leading-snug tracking-wide text-slate-500 hover:bg-slate-100 hover:text-slate-700"' +
+            ' title="Volledige URL kopiëren"' +
+            ' data-api-path="' +
+            escapeAttr(e.path) +
+            '">kopieer</button>' +
+            '</div>' +
+            '</td>' +
+            '<td class="px-4 py-3">' +
+            '<span class="inline-block rounded-md px-2 py-0.5 text-[11px] font-medium ' +
+            catClass +
+            '">' +
+            escapeHtml(CAT_LABELS[e.cat] || e.cat) +
+            '</span>' +
+            '</td>' +
+            '</tr>'
+        );
+    }).join('');
+
+    var tbody = document.getElementById('api-table-body');
+    if (!tbody) return;
+
+    tbody.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('.api-url-copy');
+        if (!btn || !tbody.contains(btn)) return;
+        var path = btn.getAttribute('data-api-path');
+        if (!path) return;
+        var url = apiAbsoluteUrl(path);
+        var label = 'kopieer';
+        copyTextSafe(url)
+            .then(function () {
+                btn.textContent = 'gekopieerd';
+                window.setTimeout(function () {
+                    btn.textContent = label;
+                }, 1500);
+            })
+            .catch(function () {
+                btn.textContent = 'mislukt';
+                window.setTimeout(function () {
+                    btn.textContent = label;
+                }, 1500);
+            });
+    });
+})();
+</script>

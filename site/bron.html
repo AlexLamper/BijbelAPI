@@ -21,9 +21,10 @@
         <div class="space-y-6 text-sm leading-relaxed text-slate-700">
             <p>
                 BijbelAPI levert gestructureerde JSON voor Nederlandse Bijbelvertalingen en aanvullende metadata.
-                Welke teksten precies beschikbaar zijn, hangt af van de geïnstalleerde dataset op de server
-                (zie endpoint <code class="rounded bg-slate-100 px-1 py-0.5">GET /api/versions</code>).
+                Welke teksten beschikbaar zijn, verschilt per installatie van de API.
+                <span id="bronVersionsInline" class="text-slate-600"> (gegevens worden geladen…)</span>
             </p>
+
             <p>
                 Vertalingen kunnen onder auteursrecht en licentievoorwaarden van uitgevers of stichtingen vallen.
                 Gebruik de API alleen in lijn met de licentie van de betreffende brontekst en je eigen juridische advies.
@@ -43,5 +44,67 @@
     <footer class="border-t border-slate-200 py-8 text-center text-xs text-slate-500">
         &copy; 2026 BijbelAPI
     </footer>
+    <script>
+    (function () {
+        function esc(v) {
+            return String(v)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function displayTitle(key, apiName, fallbackKey) {
+            var k = String(key || '').toLowerCase();
+            if (k === 'bb') return 'BasisBijbel (Ed. 2025-5)';
+            return String(apiName || fallbackKey || '');
+        }
+        function joinNl(parts) {
+            if (parts.length === 0) return '';
+            if (parts.length === 1) return parts[0];
+            if (parts.length === 2) return parts[0] + ' en ' + parts[1];
+            return parts.slice(0, -1).join(', ') + ' en ' + parts[parts.length - 1];
+        }
+        function loadVersionsInline() {
+            var el = document.getElementById('bronVersionsInline');
+            if (!el) return;
+            fetch('/api/versions', { headers: { Accept: 'application/json' } })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('bad status');
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (!Array.isArray(data)) throw new Error('bad payload');
+                    if (data.length === 0) {
+                        el.innerHTML =
+                            ' Op deze server staat vooralsnog geen vertaling in de dataset — zie eventueel <a href="/docs" class="font-medium text-blue-700 hover:underline">/docs</a>.';
+                        return;
+                    }
+                    var bits = data.map(function (item) {
+                        var key = item.key || '';
+                        var title = displayTitle(key, item.name, key);
+                        return (
+                            '<strong>' +
+                            esc(title) +
+                            '</strong> (<code class="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs text-slate-900">' +
+                            esc(key) +
+                            '</code>)'
+                        );
+                    });
+                    el.innerHTML =
+                        ' Momenteel staan hier onder andere ' + joinNl(bits) + ' in de beschikbare set.';
+                })
+                .catch(function () {
+                    el.innerHTML =
+                        ' Welke coderingen actief zijn, kun je nakijken met <code class="rounded bg-slate-100 px-1 py-0.5 font-mono text-slate-900">GET /api/versions</code> of op <a href="/docs" class="font-medium text-blue-700 hover:underline">/docs</a>.';
+                });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadVersionsInline);
+        } else {
+            loadVersionsInline();
+        }
+    })();
+    </script>
 </body>
 </html>

@@ -4,6 +4,11 @@ function showEl(id, show) {
     el.classList.toggle('hidden', !show);
 }
 
+function showProSubscribeCards(show) {
+    showEl('proSubscribeMonthlyCard', show);
+    showEl('proSubscribeYearlyCard', show);
+}
+
 const BIJBELAPI_LS_API_KEY = 'bijbelapi_api_key';
 const BIJBELAPI_LS_BILLING_EMAIL = 'bijbelapi_billing_email';
 
@@ -117,7 +122,7 @@ async function refreshBillingUiFromSavedKey() {
     if (!key) {
         showEl('billingProActivePanel', false);
         showEl('checkoutEmailBlock', true);
-        showEl('proSubscribeCardsWrap', true);
+        showProSubscribeCards(true);
         showEl('proFairUseFootnote', true);
         if (hint) {
             hint.classList.add('hidden');
@@ -134,7 +139,7 @@ async function refreshBillingUiFromSavedKey() {
         if (!res.ok || !data.active) {
             showEl('billingProActivePanel', false);
             showEl('checkoutEmailBlock', true);
-            showEl('proSubscribeCardsWrap', true);
+            showProSubscribeCards(true);
             showEl('proFairUseFootnote', true);
             if (hint) {
                 hint.classList.remove('hidden');
@@ -153,7 +158,7 @@ async function refreshBillingUiFromSavedKey() {
         }
         showEl('billingProActivePanel', true);
         showEl('checkoutEmailBlock', false);
-        showEl('proSubscribeCardsWrap', false);
+        showProSubscribeCards(false);
         showEl('proFairUseFootnote', false);
         const pem = localStorage.getItem(BIJBELAPI_LS_BILLING_EMAIL);
         const portalEmail = document.getElementById('portalEmail');
@@ -448,6 +453,30 @@ function stripHtmlAndTrim(value) {
     return noTags.replace(/\s+/g, ' ').trim();
 }
 
+/** Eén zin voor kaarten (eerste punt / uitroepteken / vraagteken); anders inhoud capped. */
+function firstSentenceFromDescription(raw) {
+    const t = stripHtmlAndTrim(raw);
+    if (!t) return '';
+    const m = t.match(/^(.+?[.!?])(\s+|$)/);
+    if (m) return m[1].trim();
+    if (t.length > 220) return `${t.slice(0, 217).trim()}…`;
+    return t;
+}
+
+function versionsDisplayTitle(key, apiName, fallbackKey) {
+    const k = String(key || '').toLowerCase();
+    if (k === 'bb') return 'BasisBijbel (Ed. 2025-5)';
+    return String(apiName || fallbackKey || '');
+}
+
+function versionsDisplayDescription(key, apiDescription) {
+    const k = String(key || '').toLowerCase();
+    if (k === 'sv') return 'De Nederlandse Staten Vertaling';
+    if (k === 'bb') return 'De BasisBijbel, de bijbel in makkelijk Nederlands';
+    const one = firstSentenceFromDescription(apiDescription);
+    return one || 'Geen beschrijving beschikbaar.';
+}
+
 async function loadAvailableVersions() {
     const loadingEl = document.getElementById('versionsLoading');
     const errorEl = document.getElementById('versionsError');
@@ -489,12 +518,12 @@ async function loadAvailableVersions() {
         gridEl.innerHTML = data
             .map((item) => {
                 const key = escapeHtml(item.key || '-');
-                const name = escapeHtml(item.name || key);
+                const name = escapeHtml(versionsDisplayTitle(item.key, item.name, item.key));
                 const shortname = escapeHtml(item.shortname || '-');
                 const module = escapeHtml(item.module || '-');
                 const year = escapeHtml(item.year || '-');
                 const lang = escapeHtml(item.lang || '-');
-                const description = escapeHtml(stripHtmlAndTrim(item.description || 'Geen beschrijving beschikbaar.'));
+                const description = escapeHtml(versionsDisplayDescription(item.key, item.description));
                 const endpoint = escapeHtml(`/api/verse?book=Genesis&chapter=1&verse=1&version=${item.key || ''}`);
                 return `
                     <article class="flex h-full flex-col items-center rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">

@@ -12,6 +12,29 @@
             return String(v || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
         }
 
+        function firstSentenceFromDescription(raw) {
+            var t = stripHtml(raw);
+            if (!t) return '';
+            var m = t.match(/^(.+?[.!?])(\s+|$)/);
+            if (m) return m[1].trim();
+            if (t.length > 220) return t.slice(0, 217).trim() + '…';
+            return t;
+        }
+
+        function versionsDisplayTitle(key, apiName, fallbackKey) {
+            var k = String(key || '').toLowerCase();
+            if (k === 'bb') return 'BasisBijbel (Ed. 2025-5)';
+            return String(apiName || fallbackKey || '');
+        }
+
+        function versionsDisplayDescription(key, apiDescription) {
+            var k = String(key || '').toLowerCase();
+            if (k === 'sv') return 'De Nederlandse Staten Vertaling';
+            if (k === 'bb') return 'De BasisBijbel, de bijbel in makkelijk Nederlands';
+            var one = firstSentenceFromDescription(apiDescription);
+            return one || 'Geen beschrijving beschikbaar.';
+        }
+
         /* Map language codes to human-readable labels */
         var langLabels = { nl: 'Nederlands', en: 'English', de: 'Deutsch', fr: 'Français', la: 'Latijn', grc: 'Grieks', he: 'Hebreeuws', es: 'Español' };
         function langLabel(code) { return langLabels[code] || code; }
@@ -28,13 +51,13 @@
             for (var i = 0; i < list.length; i++) {
                 var item        = list[i] || {};
                 var key         = esc(item.key || '-');
-                var name        = esc(item.name || item.key || '-');
+                var name        = esc(versionsDisplayTitle(item.key, item.name, item.key));
                 var shortname   = esc(item.shortname || '-');
                 var module      = esc(item.module || '-');
                 var langCode    = item.lang || '-';
                 var lang        = esc(langLabel(langCode));
                 var year        = esc(item.year || '-');
-                var description = esc(stripHtml(item.description || 'Geen beschrijving beschikbaar.'));
+                var description = esc(versionsDisplayDescription(item.key, item.description));
                 var endpoint    = esc('/api/verse?book=Genesis&amp;chapter=1&amp;verse=1&amp;version=' + (item.key || ''));
 
                 html += ''
