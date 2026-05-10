@@ -1,49 +1,50 @@
-    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/98 backdrop-blur">
         <div class="mx-auto flex max-w-7xl 2xl:max-w-[1600px] items-center justify-between px-6 md:px-8 2xl:px-6 py-3.5">
             <!-- Logo -->
             <a href="/" class="flex items-center gap-3">
                 <img src="/public/images/logo.svg" alt="BijbelAPI — Nederlandse Bijbel API voor ontwikkelaars" class="h-9 w-9 rounded-lg" width="36" height="36" fetchpriority="high">
                 <div>
-                    <p class="text-sm font-semibold tracking-tight">BijbelAPI</p>
-                    <p class="text-xs text-slate-500">Nederlandse Bijbel API</p>
+                    <p class="text-sm font-semibold tracking-tight text-white">BijbelAPI</p>
+                    <p class="text-xs text-slate-400">Nederlandse Bijbel API</p>
                 </div>
             </a>
 
             <!-- Desktop nav -->
-            <nav class="hidden items-center gap-5 text-sm md:flex" aria-label="Hoofdnavigatie">
-                <a href="#features" class="text-slate-600 hover:text-slate-900 transition-colors">Functies</a>
-                <a href="#api" class="text-slate-600 hover:text-slate-900 transition-colors">API</a>
-                <a href="#pricing" class="text-slate-600 hover:text-slate-900 transition-colors">Pricing</a>
-                <a href="#veelgestelde-vragen" class="text-slate-600 hover:text-slate-900 transition-colors">FAQ</a>
-                <a href="/bron.html" class="text-slate-600 hover:text-slate-900 transition-colors">Bronnen</a>
-                <a href="/docs" class="text-slate-600 hover:text-slate-900 transition-colors">Docs</a>
+            <nav class="hidden items-center gap-6 text-sm md:flex" aria-label="Hoofdnavigatie">
+                <a href="#features" class="text-slate-300 hover:text-white transition-colors">Functies</a>
+                <a href="#api" class="text-slate-300 hover:text-white transition-colors">API</a>
+                <a href="#pricing" class="text-slate-300 hover:text-white transition-colors">Pricing</a>
+                <a href="#veelgestelde-vragen" class="text-slate-300 hover:text-white transition-colors">FAQ</a>
+                <a href="/bron.html" class="text-slate-300 hover:text-white transition-colors">Bronnen</a>
+                <a href="/docs" class="text-slate-300 hover:text-white transition-colors">Docs</a>
             </nav>
 
             <!-- Desktop CTAs -->
-            <div class="hidden items-center gap-2 md:flex">
-                <button type="button" id="btnHeaderPro" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 transition-colors">
+            <div class="hidden items-center gap-3 md:flex">
+                <a href="/docs" class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">Documentatie</a>
+                <button type="button" id="btnHeaderPro" onclick="if(typeof openCheckoutModal==='function')openCheckoutModal('pro_monthly')" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
                     Pro — €9,99/mnd
                 </button>
             </div>
 
             <!-- Mobile hamburger -->
-            <button type="button" id="mobileMenuBtn" class="flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-700 md:hidden" aria-label="Menu openen" aria-expanded="false" aria-controls="mobileMenu">
-                <svg id="iconHamburger" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                <svg id="iconClose" class="hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            <button type="button" id="mobileMenuBtn" class="flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800 p-2 text-slate-300 md:hidden" aria-label="Menu openen" aria-expanded="false" aria-controls="mobileMenu">
+                <svg id="iconHamburger" style="width:20px;height:20px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg id="iconClose" style="display:none;width:20px;height:20px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
         <!-- Mobile menu (hidden by default) -->
-        <div id="mobileMenu" class="hidden border-t border-slate-100 bg-white px-6 pb-4 md:hidden">
+        <div id="mobileMenu" style="display:none" class="border-t border-slate-800 bg-slate-900 px-6 pb-4 md:hidden">
             <nav class="flex flex-col gap-1 pt-3 text-sm" aria-label="Mobiele navigatie">
-                <a href="#features" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Functies</a>
-                <a href="#api" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">API</a>
-                <a href="#pricing" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Pricing</a>
-                <a href="#veelgestelde-vragen" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">FAQ</a>
-                <a href="/bron.html" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Bronnen</a>
-                <a href="/docs" class="rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-50">Documentatie</a>
-                <div class="mt-2 border-t border-slate-100 pt-3">
-                    <button type="button" id="btnMobilePro" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
+                <a href="#features" class="rounded-lg px-3 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white">Functies</a>
+                <a href="#api" class="rounded-lg px-3 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white">API</a>
+                <a href="#pricing" class="rounded-lg px-3 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white">Pricing</a>
+                <a href="#veelgestelde-vragen" class="rounded-lg px-3 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white">FAQ</a>
+                <a href="/bron.html" class="rounded-lg px-3 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white">Bronnen</a>
+                <a href="/docs" class="rounded-lg px-3 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white">Documentatie</a>
+                <div class="mt-2 border-t border-slate-800 pt-3">
+                    <button type="button" id="btnMobilePro" onclick="if(typeof openCheckoutModal==='function'){openCheckoutModal('pro_monthly');document.getElementById('mobileMenu').style.display='none';}" class="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
                         Start Pro — €9,99/mnd
                     </button>
                 </div>
@@ -58,21 +59,17 @@
         var iconH = document.getElementById('iconHamburger');
         var iconC = document.getElementById('iconClose');
         if (!btn || !menu) return;
+        function setOpen(open) {
+            menu.style.display = open ? 'block' : 'none';
+            btn.setAttribute('aria-expanded', String(open));
+            if (iconH) iconH.style.display = open ? 'none' : '';
+            if (iconC) iconC.style.display = open ? '' : 'none';
+        }
         btn.addEventListener('click', function () {
-            var open = !menu.classList.contains('hidden');
-            menu.classList.toggle('hidden', open);
-            btn.setAttribute('aria-expanded', String(!open));
-            if (iconH) iconH.classList.toggle('hidden', !open);
-            if (iconC) iconC.classList.toggle('hidden', open);
+            setOpen(menu.style.display === 'none' || menu.style.display === '');
         });
-        // Close on nav link click
         menu.querySelectorAll('a').forEach(function (a) {
-            a.addEventListener('click', function () {
-                menu.classList.add('hidden');
-                btn.setAttribute('aria-expanded', 'false');
-                if (iconH) iconH.classList.remove('hidden');
-                if (iconC) iconC.classList.add('hidden');
-            });
+            a.addEventListener('click', function () { setOpen(false); });
         });
     })();
     </script>

@@ -660,14 +660,29 @@ async function loadAvailableVersions() {
     }
 }
 
+function initFadeInSections() {
+    const els = document.querySelectorAll('.fade-in-section');
+    if (!els.length) return;
+    if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+        }, { threshold: 0.08 });
+        els.forEach((el) => obs.observe(el));
+    } else {
+        els.forEach((el) => el.classList.add('visible'));
+    }
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initBillingAndBanners();
         loadAvailableVersions();
+        initFadeInSections();
     });
 } else {
     initBillingAndBanners();
     loadAvailableVersions();
+    initFadeInSections();
 }
 
 // Zoek een specifiek vers
