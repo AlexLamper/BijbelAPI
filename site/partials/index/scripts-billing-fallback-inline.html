@@ -20,6 +20,7 @@
             var xhr = new XMLHttpRequest();
             xhr.open('POST', url, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Accept', 'application/json');
             xhr.onreadystatechange = function () {
                 if (xhr.readyState !== 4) return;
                 var data = null;
@@ -30,28 +31,91 @@
             xhr.send(JSON.stringify(payload));
         }
 
-        function fallbackCheckout(plan) {
-            /* Try the JS modal first (script.js loaded) */
-            if (typeof window.openCheckoutModal === 'function') {
-                window.openCheckoutModal(plan);
-                return;
+        function validateEmail(email) {
+            return !!email && email.indexOf('@') !== -1;
+        }
+
+        function setDialogPlanLabel(plan) {
+            var label = byId('modalPlanLabel');
+            if (!label) return;
+            label.textContent = plan === 'pro_yearly'
+                ? 'Pro Jaarlijks — €99,99 / jaar'
+                : 'Pro Maandelijks — €9,99 / maand';
+        }
+
+        function openCheckoutDialogFallback(plan) {
+            var dlg = byId('checkoutModal');
+            if (!dlg || typeof dlg.showModal !== 'function') return false;
+            window._modalCurrentPlan = plan;
+            setDialogPlanLabel(plan);
+            var err = byId('modalCheckoutError');
+            if (err) {
+                err.textContent = '';
+                err.classList.add('hidden');
             }
-            /* Legacy fallback: read from inline email input if present */
-            var emailInput = byId('checkoutEmail') || byId('modalCheckoutEmail');
-            var email = emailInput ? String(emailInput.value || '').trim() : '';
-            if (!email || email.indexOf('@') === -1) {
-                showMsg('checkoutError', 'Vul een geldig e-mailadres in voor Checkout.', true);
-                if (emailInput) emailInput.focus();
-                return;
+            if (!dlg.open) dlg.showModal();
+            var emailInput = byId('modalCheckoutEmail');
+            if (emailInput) setTimeout(function () { emailInput.focus(); }, 30);
+            return true;
+        }
+
+        function openPortalDialogFallback() {
+            var dlg = byId('portalModal');
+            if (!dlg || typeof dlg.showModal !== 'function') return false;
+            var err = byId('portalModalError');
+            if (err) {
+                err.textContent = '';
+                err.classList.add('hidden');
             }
-            showMsg('checkoutError', 'Doorsturen naar Stripe Checkout...', false);
+            if (!dlg.open) dlg.showModal();
+            var emailInput = byId('portalModalEmail');
+            if (emailInput) setTimeout(function () { emailInput.focus(); }, 30);
+            return true;
+        }
+
+        function fallbackCheckoutRequest(plan, email, cb) {
             postJson('/billing/checkout-session', { email: email, plan: plan }, function (status, data) {
                 if (status >= 200 && status < 300 && data && data.checkout_url) {
                     window.location.href = data.checkout_url;
                     return;
                 }
                 var message = (data && (data.message || data.detail)) ? (data.message || data.detail) : ('Checkout mislukt (' + status + ').');
-                showMsg('checkoutError', String(message), true);
+                cb(String(message));
+            });
+        }
+
+        function fallbackPortalRequest(email, cb) {
+            postJson('/billing/portal-session', { email: email }, function (status, data) {
+                if (status >= 200 && status < 300 && data && data.portal_url) {
+                    window.location.href = data.portal_url;
+                    return;
+                }
+                var message = (data && (data.message || data.detail)) ? (data.message || data.detail) : ('Portal mislukt (' + status + ').');
+                cb(String(message));
+            });
+        }
+
+        function fallbackCheckout(plan) {
+            /* Try the JS modal first (script.js loaded) */
+            if (typeof window.openCheckoutModal === 'function') {
+                window.openCheckoutModal(plan);
+                return;
+            }
+            /* Fallback modal without script.js */
+            if (openCheckoutDialogFallback(plan)) {
+                showMsg('checkoutError', 'Checkout dialoog geopend via fallback.', false);
+                return;
+            }
+            /* Last resort: prompt */
+            var email = window.prompt('Vul je e-mailadres in voor Stripe Checkout:');
+            email = email ? String(email).trim() : '';
+            if (!validateEmail(email)) {
+                showMsg('checkoutError', 'Vul een geldig e-mailadres in voor Checkout.', true);
+                return;
+            }
+            showMsg('checkoutError', 'Doorsturen naar Stripe Checkout...', false);
+            fallbackCheckoutRequest(plan, email, function (message) {
+                showMsg('checkoutError', message, true);
             });
         }
 
@@ -60,31 +124,124 @@
                 window.openPortalModal();
                 return;
             }
-            var emailInput = byId('portalEmail') || byId('portalModalEmail');
-            var email = emailInput ? String(emailInput.value || '').trim() : '';
-            if (!email || email.indexOf('@') === -1) {
+            if (openPortalDialogFallback()) {
+                showMsg('portalError', 'Portal dialoog geopend via fallback.', false);
+                return;
+            }
+            var email = window.prompt('Vul het e-mailadres in waarmee je Pro hebt afgenomen:');
+            email = email ? String(email).trim() : '';
+            if (!validateEmail(email)) {
                 showMsg('portalError', 'Vul het e-mailadres in waarmee je Pro hebt afgenomen.', true);
-                if (emailInput) emailInput.focus();
                 return;
             }
             showMsg('portalError', 'Klantportaal openen...', false);
-            postJson('/billing/portal-session', { email: email }, function (status, data) {
-                if (status >= 200 && status < 300 && data && data.portal_url) {
-                    window.location.href = data.portal_url;
-                    return;
-                }
-                var message = (data && (data.message || data.detail)) ? (data.message || data.detail) : ('Portal mislukt (' + status + ').');
-                showMsg('portalError', String(message), true);
+            fallbackPortalRequest(email, function (message) {
+                showMsg('portalError', message, true);
             });
+        }
+
+        function bindModalFallbackButtons() {
+            var btnModalPay = byId('btnModalPay');
+            if (btnModalPay && !btnModalPay.dataset.fallbackBound) {
+                btnModalPay.dataset.fallbackBound = '1';
+                btnModalPay.onclick = function (e) {
+                    if (e && e.preventDefault) e.preventDefault();
+                    if (typeof window.startStripeCheckout === 'function') {
+                        window.startStripeCheckout(window._modalCurrentPlan || 'pro_monthly', null);
+                        return;
+                    }
+                    var emailInput = byId('modalCheckoutEmail');
+                    var errEl = byId('modalCheckoutError');
+                    var email = emailInput ? String(emailInput.value || '').trim() : '';
+                    if (!validateEmail(email)) {
+                        if (errEl) {
+                            errEl.textContent = 'Vul een geldig e-mailadres in voor Checkout.';
+                            errEl.classList.remove('hidden');
+                        }
+                        if (emailInput) emailInput.focus();
+                        return;
+                    }
+                    if (errEl) {
+                        errEl.textContent = 'Doorsturen naar Stripe Checkout...';
+                        errEl.classList.remove('hidden');
+                    }
+                    fallbackCheckoutRequest(window._modalCurrentPlan || 'pro_monthly', email, function (message) {
+                        if (errEl) {
+                            errEl.textContent = message;
+                            errEl.classList.remove('hidden');
+                        } else {
+                            showMsg('checkoutError', message, true);
+                        }
+                    });
+                };
+            }
+
+            var btnPortalSubmit = byId('btnPortalModalSubmit');
+            if (btnPortalSubmit && !btnPortalSubmit.dataset.fallbackBound) {
+                btnPortalSubmit.dataset.fallbackBound = '1';
+                btnPortalSubmit.onclick = function (e) {
+                    if (e && e.preventDefault) e.preventDefault();
+                    var emailInput = byId('portalModalEmail');
+                    var errEl = byId('portalModalError');
+                    var email = emailInput ? String(emailInput.value || '').trim() : '';
+                    if (!validateEmail(email)) {
+                        if (errEl) {
+                            errEl.textContent = 'Vul het e-mailadres in waarmee je Pro hebt afgenomen.';
+                            errEl.classList.remove('hidden');
+                        }
+                        if (emailInput) emailInput.focus();
+                        return;
+                    }
+                    if (errEl) {
+                        errEl.textContent = 'Klantportaal openen...';
+                        errEl.classList.remove('hidden');
+                    }
+                    fallbackPortalRequest(email, function (message) {
+                        if (errEl) {
+                            errEl.textContent = message;
+                            errEl.classList.remove('hidden');
+                        } else {
+                            showMsg('portalError', message, true);
+                        }
+                    });
+                };
+            }
+
+            var btnCloseCheckout = byId('btnModalClose');
+            if (btnCloseCheckout && !btnCloseCheckout.dataset.fallbackBound) {
+                btnCloseCheckout.dataset.fallbackBound = '1';
+                btnCloseCheckout.onclick = function (e) {
+                    if (e && e.preventDefault) e.preventDefault();
+                    var dlg = byId('checkoutModal');
+                    if (dlg && dlg.open) dlg.close();
+                };
+            }
+
+            var btnClosePortal = byId('btnPortalModalClose');
+            if (btnClosePortal && !btnClosePortal.dataset.fallbackBound) {
+                btnClosePortal.dataset.fallbackBound = '1';
+                btnClosePortal.onclick = function (e) {
+                    if (e && e.preventDefault) e.preventDefault();
+                    var dlg = byId('portalModal');
+                    if (dlg && dlg.open) dlg.close();
+                };
+            }
         }
 
         function bind() {
             var m = byId('btnCheckoutMonthly');
             var y = byId('btnCheckoutYearly');
             var p = byId('btnPortal');
+            var pText = byId('btnPortalTextLink');
+            var hPro = byId('btnHeaderPro');
+            var mPro = byId('btnMobilePro');
             if (m) m.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_monthly'); };
             if (y) y.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_yearly'); };
             if (p) p.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackPortal(); };
+            if (pText) pText.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackPortal(); };
+            if (hPro) hPro.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_monthly'); };
+            if (mPro) mPro.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_monthly'); };
+            bindModalFallbackButtons();
         }
 
         if (document.readyState === 'loading') {

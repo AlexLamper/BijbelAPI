@@ -177,11 +177,19 @@ async function refreshBillingUiFromSavedKey() {
 
 const BILLING_DEBUG_ENABLED = new URLSearchParams(window.location.search).get('debug') === '1';
 function billingDebugLog(message) {
-    if (!BILLING_DEBUG_ENABLED) return;
+    const force = String(message || '').indexOf('[ERR]') !== -1;
+    if (!BILLING_DEBUG_ENABLED && !force) return;
     const debugEl = document.getElementById('billingDebugLog');
-    if (!debugEl) return;
-    debugEl.classList.remove('hidden');
-    debugEl.textContent += `${new Date().toISOString()} ${message}\n`;
+    const line = `${new Date().toISOString()} ${message}`;
+    if (debugEl) {
+        debugEl.classList.remove('hidden');
+        debugEl.textContent += `${line}\n`;
+    }
+    if (force) {
+        // Always mirror hard errors to browser console for production diagnostics.
+        // eslint-disable-next-line no-console
+        console.error(`[billing] ${line}`);
+    }
 }
 
 function stripeErrorMessage(data, res) {
@@ -210,6 +218,7 @@ let _modalCurrentPlan = 'pro_monthly';
 
 function openCheckoutModal(plan) {
     _modalCurrentPlan = plan || 'pro_monthly';
+    window._modalCurrentPlan = _modalCurrentPlan;
     const modal = document.getElementById('checkoutModal');
     if (!modal) { startStripeCheckout(_modalCurrentPlan, null); return; }
     const planLabel = document.getElementById('modalPlanLabel');
@@ -255,6 +264,8 @@ window.openCheckoutModal = openCheckoutModal;
 window.closeCheckoutModal = closeCheckoutModal;
 window.openPortalModal = openPortalModal;
 window.closePortalModal = closePortalModal;
+window.startStripeCheckout = startStripeCheckout;
+window.openStripePortal = openStripePortal;
 
 async function startStripeCheckout(plan, emailArg) {
     billingDebugLog(`startStripeCheckout plan=${plan}`);
@@ -301,6 +312,7 @@ async function startStripeCheckout(plan, emailArg) {
         const data = await res.json().catch(() => ({}));
         billingDebugLog(`checkout response status=${res.status} ok=${res.ok} keys=${Object.keys(data || {}).join(',')}`);
         if (!res.ok) {
+            billingDebugLog(`[ERR] checkout non-ok status=${res.status} detail=${stripeErrorMessage(data, res)}`);
             if (errEl) {
                 errEl.textContent = stripeErrorMessage(data, res);
                 errEl.classList.remove('hidden');
@@ -316,8 +328,8 @@ async function startStripeCheckout(plan, emailArg) {
             errEl.textContent = 'Geen checkout-URL ontvangen. Controleer de Stripe-configuratie.';
             errEl.classList.remove('hidden');
         }
-    } catch {
-        billingDebugLog('checkout fetch failed (network/runtime)');
+    } catch (e) {
+        billingDebugLog(`[ERR] checkout fetch failed: ${e && e.message ? e.message : String(e)}`);
         if (errEl) {
             errEl.textContent =
                 'Netwerkfout of geen verbinding met de server. Controleer of je op de live site zit (niet file://) en of de API bereikbaar is.';
@@ -338,7 +350,7 @@ async function openStripePortal() {
         errEl.textContent = '';
         errEl.classList.add('hidden');
     }
-    const emailInput = document.getElementById('portalEmail');
+    const emailInput = document.getElementById('portalEmail') || document.getElementById('portalModalEmail');
     const email = emailInput ? emailInput.value.trim() : '';
     if (!email || !email.includes('@')) {
         if (errEl) {
@@ -359,6 +371,7 @@ async function openStripePortal() {
         const data = await res.json().catch(() => ({}));
         billingDebugLog(`portal response status=${res.status} ok=${res.ok}`);
         if (!res.ok) {
+            billingDebugLog(`[ERR] portal non-ok status=${res.status} detail=${stripeErrorMessage(data, res)}`);
             if (errEl) {
                 errEl.textContent = stripeErrorMessage(data, res);
                 errEl.classList.remove('hidden');
@@ -374,8 +387,8 @@ async function openStripePortal() {
             errEl.textContent = 'Geen portaal-URL ontvangen.';
             errEl.classList.remove('hidden');
         }
-    } catch {
-        billingDebugLog('portal fetch failed (network/runtime)');
+    } catch (e) {
+        billingDebugLog(`[ERR] portal fetch failed: ${e && e.message ? e.message : String(e)}`);
         if (errEl) {
             errEl.textContent = 'Netwerkfout. Probeer het later opnieuw.';
             errEl.classList.remove('hidden');
@@ -386,6 +399,8 @@ async function openStripePortal() {
 }
 
 function initBillingAndBanners() {
+    if (window.__billingInitDone) return;
+    window.__billingInitDone = true;
     billingDebugLog('initBillingAndBanners start');
     const params = new URLSearchParams(window.location.search);
     if (params.get('checkout') === 'success') showEl('checkoutBanner', true);
@@ -818,6 +833,7 @@ setupApiTestButtons();
 
 // Extra debug hooks for startup issues (visible with ?debug=1)
 window.addEventListener('error', (event) => {
+    billingDebugLog(`[ERR] window.error: ${event.message}`);
     const debugEl = document.getElementById('versionsDebug');
     const debugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
     if (!debugEnabled || !debugEl) return;
@@ -826,10 +842,11 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason && event.reason.message ? event.reason.message : String(event.reason);
+    billingDebugLog(`[ERR] unhandledrejection: ${reason}`);
     const debugEl = document.getElementById('versionsDebug');
     const debugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
     if (!debugEnabled || !debugEl) return;
     debugEl.classList.remove('hidden');
-    const reason = event.reason && event.reason.message ? event.reason.message : String(event.reason);
     debugEl.textContent += `${new Date().toISOString()} unhandledrejection: ${reason}\n`;
 });
