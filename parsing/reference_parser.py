@@ -11,6 +11,7 @@ Handles parsing of complex Bible references including:
 import re
 from typing import Dict, List, Any, Optional, Tuple
 from .book_normalizer import BookNormalizer
+from .book_normalization import resolve_book_name_for_data
 
 class ReferenceParser:
     """Parses complex Bible references and fetches formatted text."""
@@ -26,6 +27,18 @@ class ReferenceParser:
         self.all_versions = all_versions
         self.version = version
         self.book_normalizer = BookNormalizer()
+        self.translation_aliases = {
+            "statenvertaling": "sv",
+            "stve": "sv",
+            "herziene-statenvertaling": "hsv",
+            "nbg": "nbg1951",
+            "nbg51": "nbg1951",
+            "nld": "nld1939",
+            "nld39": "nld1939",
+            "nld-1939": "nld1939",
+            "basisbijbel": "bb",
+            "nlb": "bb",
+        }
     
     def parse(self, reference: str, version: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -447,7 +460,8 @@ class ReferenceParser:
 
     def _resolve_version_key(self, version: str) -> Optional[str]:
         """Resolve translation by key and metadata aliases."""
-        normalized = version.lower()
+        normalized = (version or "").lower()
+        normalized = self.translation_aliases.get(normalized, normalized)
         for key, data in self.all_versions.items():
             meta = data.get("meta", {})
             if (
@@ -462,10 +476,7 @@ class ReferenceParser:
     def _normalize_book_name_for_version(self, version_key: str, book_name: str) -> Optional[str]:
         """Normalize book name for a specific version (same logic as main.py)."""
         data = self.all_versions[version_key]["data"]
-        for name in data:
-            if name.lower().replace("ë", "e") == book_name.lower().replace("ë", "e"):
-                return name
-        return None
+        return resolve_book_name_for_data(book_name, data)
     
     def _extract_verses_from_chapter(self, chapter_data: Dict[str, Any], verse_range: str) -> List[Dict[str, Any]]:
         """Extract specific verses from chapter data."""
