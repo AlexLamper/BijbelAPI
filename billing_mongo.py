@@ -1,6 +1,7 @@
 """
 MongoDB persistence for API keys, Stripe subscriptions, and webhook idempotency.
-Connection: set MONGODB_URI (full SRV string). Optional MONGODB_DB_NAME (default: bijbelapi).
+Connection: set MONGODB_URI (full SRV string). Legacy fallback: MONGO_URI.
+Optional MONGODB_DB_NAME (default: bijbelapi).
 """
 from __future__ import annotations
 
@@ -18,7 +19,32 @@ _indexes_ensured = False
 
 
 def get_mongo_uri() -> str:
-    return os.getenv("MONGODB_URI", "").strip()
+    primary = os.getenv("MONGODB_URI", "").strip()
+    if primary:
+        return primary
+    # Backward-compatibility: some deployments still use MONGO_URI.
+    return os.getenv("MONGO_URI", "").strip()
+
+
+def get_mongo_uri_source() -> str:
+    if os.getenv("MONGODB_URI", "").strip():
+        return "MONGODB_URI"
+    if os.getenv("MONGO_URI", "").strip():
+        return "MONGO_URI"
+    return ""
+
+
+def mongo_config_error() -> Optional[str]:
+    uri = get_mongo_uri()
+    if not uri:
+        return "MongoDB URI ontbreekt: zet MONGODB_URI (of legacy MONGO_URI) met een mongodb:// of mongodb+srv:// connection string."
+    if not (uri.startswith("mongodb://") or uri.startswith("mongodb+srv://")):
+        source = get_mongo_uri_source() or "MONGODB_URI"
+        return (
+            f"{source} is ongeldig: URI moet beginnen met 'mongodb://' of 'mongodb+srv://'. "
+            "Gebruik hier geen https:// website-URL."
+        )
+    return None
 
 
 def get_mongo_db_name() -> str:
@@ -27,9 +53,10 @@ def get_mongo_db_name() -> str:
 
 def get_mongo_client() -> MongoClient:
     global _client
+    err = mongo_config_error()
+    if err:
+        raise RuntimeError(err)
     uri = get_mongo_uri()
-    if not uri:
-        raise RuntimeError("MONGODB_URI ontbreekt")
     if _client is None:
         _client = MongoClient(uri, serverSelectionTimeoutMS=12000)
     return _client
@@ -54,13 +81,14 @@ def ensure_billing_indexes() -> None:
 
 def ping_mongo() -> dict[str, Any]:
     t0 = time.perf_counter()
-    uri = get_mongo_uri()
     db_name = get_mongo_db_name()
-    if not uri:
+    config_error = mongo_config_error()
+    if config_error:
         return {
             "ok": False,
-            "error": "MONGODB_URI niet geconfigureerd",
+            "error": config_error,
             "database": db_name,
+            "source": get_mongo_uri_source() or None,
         }
     try:
         client = get_mongo_client()

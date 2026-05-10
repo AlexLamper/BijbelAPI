@@ -13,6 +13,7 @@ import re
 import gzip
 import random
 import hashlib
+import unicodedata
 from datetime import date, datetime, timezone
 from xml.sax.saxutils import escape as xml_escape
 from typing import Any, Optional
@@ -431,10 +432,252 @@ def resolve_version_key(version: str):
 
 def normalize_book_name(version_key, book_name):
     data = all_versions.get(version_key, {}).get("data", {})
+    requested_token = _book_token(book_name)
+    if not requested_token:
+        return None
+
+    # Fast path: accent-insensitive exact match first.
     for name in data:
-        if name.lower().replace("ë", "e") == book_name.lower().replace("ë", "e"):
+        if _book_token(name) == requested_token:
             return name
+
+    requested_id = _book_id_from_token(requested_token)
+    if requested_id:
+        for name in data:
+            candidate_id = _book_id_from_token(_book_token(name))
+            if candidate_id and candidate_id == requested_id:
+                return name
     return None
+
+
+def _book_token(value: str) -> str:
+    if not value:
+        return ""
+    normalized = unicodedata.normalize("NFKD", value)
+    normalized = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    normalized = normalized.lower()
+    return re.sub(r"[^a-z0-9]", "", normalized)
+
+
+def _book_id_from_token(token: str) -> Optional[str]:
+    return BOOK_TOKEN_TO_ID.get(token)
+
+
+BOOK_TOKEN_TO_ID = {
+    "genesis": "gen",
+    "gen": "gen",
+    "genesisboek": "gen",
+    "exodus": "exo",
+    "exo": "exo",
+    "leviticus": "lev",
+    "lev": "lev",
+    "numeri": "num",
+    "numbers": "num",
+    "num": "num",
+    "deuteronomium": "deu",
+    "deuteronomy": "deu",
+    "deut": "deu",
+    "deu": "deu",
+    "jozua": "jos",
+    "joshua": "jos",
+    "jos": "jos",
+    "richteren": "jdg",
+    "judges": "jdg",
+    "jdg": "jdg",
+    "ruth": "rut",
+    "rut": "rut",
+    "1samuel": "1sa",
+    "isamuel": "1sa",
+    "firstsamuel": "1sa",
+    "2samuel": "2sa",
+    "iisamuel": "2sa",
+    "secondsamuel": "2sa",
+    "1koningen": "1ki",
+    "ikoningen": "1ki",
+    "1kings": "1ki",
+    "firstkings": "1ki",
+    "2koningen": "2ki",
+    "iikoningen": "2ki",
+    "2kings": "2ki",
+    "secondkings": "2ki",
+    "1kronieken": "1ch",
+    "ikronieken": "1ch",
+    "1chronicles": "1ch",
+    "firstchronicles": "1ch",
+    "2kronieken": "2ch",
+    "iikronieken": "2ch",
+    "2chronicles": "2ch",
+    "secondchronicles": "2ch",
+    "ezra": "ezr",
+    "ezr": "ezr",
+    "nehemia": "neh",
+    "nehemiah": "neh",
+    "neh": "neh",
+    "ester": "est",
+    "esther": "est",
+    "est": "est",
+    "job": "job",
+    "psalm": "psa",
+    "psalmen": "psa",
+    "psalms": "psa",
+    "ps": "psa",
+    "psa": "psa",
+    "spreuken": "pro",
+    "proverbs": "pro",
+    "spr": "pro",
+    "pro": "pro",
+    "prediker": "ecc",
+    "ecclesiastes": "ecc",
+    "ecc": "ecc",
+    "hooglied": "sng",
+    "songofsongs": "sng",
+    "songofsolomon": "sng",
+    "sng": "sng",
+    "jesaja": "isa",
+    "isaiah": "isa",
+    "isa": "isa",
+    "jeremia": "jer",
+    "jeremiah": "jer",
+    "jer": "jer",
+    "klaagliederen": "lam",
+    "lamentations": "lam",
+    "lam": "lam",
+    "ezekiel": "ezk",
+    "ezechiel": "ezk",
+    "ezk": "ezk",
+    "daniel": "dan",
+    "dan": "dan",
+    "hosea": "hos",
+    "hos": "hos",
+    "joel": "jol",
+    "jol": "jol",
+    "amos": "amo",
+    "amo": "amo",
+    "obadja": "oba",
+    "obadiah": "oba",
+    "oba": "oba",
+    "jona": "jon",
+    "jonah": "jon",
+    "jon": "jon",
+    "micha": "mic",
+    "micah": "mic",
+    "mic": "mic",
+    "nahum": "nam",
+    "nah": "nam",
+    "habakuk": "hab",
+    "habakkuk": "hab",
+    "hab": "hab",
+    "sefanja": "zep",
+    "zephaniah": "zep",
+    "zep": "zep",
+    "haggai": "hag",
+    "hag": "hag",
+    "zacharia": "zec",
+    "zechariah": "zec",
+    "zec": "zec",
+    "maleachi": "mal",
+    "malachi": "mal",
+    "mal": "mal",
+    "mattheus": "mat",
+    "matthe": "mat",
+    "matthew": "mat",
+    "matteus": "mat",
+    "mat": "mat",
+    "marcus": "mrk",
+    "markus": "mrk",
+    "mark": "mrk",
+    "mrk": "mrk",
+    "lukas": "luk",
+    "lucas": "luk",
+    "luke": "luk",
+    "luk": "luk",
+    "johannes": "jhn",
+    "john": "jhn",
+    "jhn": "jhn",
+    "handelingen": "act",
+    "acts": "act",
+    "act": "act",
+    "romeinen": "rom",
+    "romans": "rom",
+    "rom": "rom",
+    "1korinthe": "1co",
+    "1korintiers": "1co",
+    "ikorinthe": "1co",
+    "1corinthians": "1co",
+    "firstcorinthians": "1co",
+    "2korinthe": "2co",
+    "2korintiers": "2co",
+    "iikorinthe": "2co",
+    "2corinthians": "2co",
+    "secondcorinthians": "2co",
+    "galaten": "gal",
+    "galatians": "gal",
+    "gal": "gal",
+    "efeziers": "eph",
+    "ephesians": "eph",
+    "efezers": "eph",
+    "eph": "eph",
+    "filippenzen": "php",
+    "philippians": "php",
+    "php": "php",
+    "kolossenzen": "col",
+    "colossians": "col",
+    "col": "col",
+    "1thessalonicenzen": "1th",
+    "1thessalonians": "1th",
+    "ithessalonicenzen": "1th",
+    "firstthessalonians": "1th",
+    "2thessalonicenzen": "2th",
+    "2thessalonians": "2th",
+    "iithessalonicenzen": "2th",
+    "secondthessalonians": "2th",
+    "1timotheus": "1ti",
+    "itimotheus": "1ti",
+    "1timothy": "1ti",
+    "firsttimothy": "1ti",
+    "2timotheus": "2ti",
+    "iitimotheus": "2ti",
+    "2timothy": "2ti",
+    "secondtimothy": "2ti",
+    "titus": "tit",
+    "tit": "tit",
+    "filemon": "phm",
+    "philemon": "phm",
+    "phm": "phm",
+    "hebreeen": "heb",
+    "hebrews": "heb",
+    "heb": "heb",
+    "jakobus": "jas",
+    "james": "jas",
+    "jas": "jas",
+    "1petrus": "1pe",
+    "ipetrus": "1pe",
+    "1peter": "1pe",
+    "firstpeter": "1pe",
+    "2petrus": "2pe",
+    "iipetrus": "2pe",
+    "2peter": "2pe",
+    "secondpeter": "2pe",
+    "1johannes": "1jn",
+    "ijohannes": "1jn",
+    "1john": "1jn",
+    "firstjohn": "1jn",
+    "2johannes": "2jn",
+    "iijohannes": "2jn",
+    "2john": "2jn",
+    "secondjohn": "2jn",
+    "3johannes": "3jn",
+    "iiijohannes": "3jn",
+    "3john": "3jn",
+    "thirdjohn": "3jn",
+    "judas": "jud",
+    "jude": "jud",
+    "jud": "jud",
+    "openbaring": "rev",
+    "openbaringen": "rev",
+    "revelation": "rev",
+    "rev": "rev",
+}
 
 # --- Commentary loading (Matthew Henry, etc.) ---
 COMMENTARIES_DIR = os.path.join(BASE_DIR, "commentaries")
@@ -793,21 +1036,24 @@ def get_commentary(request: Request, source: str, book: str, chapter: str, verse
 
 @app.on_event("startup")
 def _startup_billing_mongo():
-    if not billing_db.get_mongo_uri():
-        logging.warning("MONGODB_URI ontbreekt — API-keys en billing gebruiken geen database.")
+    config_error = billing_db.mongo_config_error()
+    if config_error:
+        logging.warning("%s", config_error)
         return
     try:
         billing_db.ensure_billing_indexes()
-        logging.info("MongoDB billing indexes OK (%s)", billing_db.get_mongo_db_name())
+        source = billing_db.get_mongo_uri_source() or "MONGODB_URI"
+        logging.info("MongoDB billing indexes OK (%s, via %s)", billing_db.get_mongo_db_name(), source)
     except Exception as e:
         logging.exception("MongoDB index-init mislukt: %s", e)
 
 
 def _require_mongo_configured():
-    if not billing_db.get_mongo_uri():
+    config_error = billing_db.mongo_config_error()
+    if config_error:
         raise HTTPException(
             status_code=503,
-            detail="Database niet geconfigureerd: zet MONGODB_URI (MongoDB Atlas connection string).",
+            detail=config_error,
         )
 
 
