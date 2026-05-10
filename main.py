@@ -1358,10 +1358,12 @@ def billing_checkout_success(request: Request, session_id: str = Query(..., min_
     sid = session_id.strip()
     if not sid.startswith("cs_"):
         raise HTTPException(status_code=400, detail="Ongeldige checkout-sessie")
+    billing_trace("checkout_success:poll_start", session_id_tail=sid[-14:])
     try:
         sess = stripe.checkout.Session.retrieve(sid)
     except Exception as exc:
         logging.warning("checkout-success retrieve failed: %s", exc)
+        billing_trace("checkout_success:stripe_retrieve_fout", session_id_tail=sid[-14:], fout=str(exc)[:180])
         raise HTTPException(status_code=400, detail="Sessie niet gevonden of verlopen")
     plain = _stripe_to_plain(sess)
     if not isinstance(plain, dict):
@@ -1369,18 +1371,26 @@ def billing_checkout_success(request: Request, session_id: str = Query(..., min_
     if plain.get("mode") != "subscription":
         raise HTTPException(status_code=400, detail="Geen abonnements-checkout")
     if plain.get("payment_status") != "paid" or plain.get("status") != "complete":
+        billing_trace(
+            "checkout_success:nog_niet_betaald_of_complete",
+            payment_status=str(plain.get("payment_status")),
+            status=str(plain.get("status")),
+            session_id_tail=sid[-14:],
+        )
         return {
             "ready": False,
             "message": "Betaling nog niet afgerond. Vernieuw over een moment.",
         }
     email = _checkout_session_email(plain)
     if not email:
+        billing_trace("checkout_success:geen_email_op_sessie", session_id_tail=sid[-14:])
         raise HTTPException(status_code=400, detail="Geen e-mailadres op de sessie")
     _require_mongo_configured()
     billing_db.ensure_billing_indexes()
     db = billing_db.get_billing_db()
     api_key_obj = billing_db.mongo_find_api_key_by_email(db, email)
     if not api_key_obj:
+        billing_trace("checkout_success:api_key_nog_niet_gekoppeld", email=_mask_email_for_log(email))
         return {
             "ready": False,
             "message": "Je betaling wordt gekoppeld. Vernieuw over enkele seconden.",
@@ -1388,10 +1398,21 @@ def billing_checkout_success(request: Request, session_id: str = Query(..., min_
     sub = billing_db.mongo_find_latest_subscription_by_api_key_id(db, api_key_obj["_id"])
     active = bool(sub and sub.get("status") in {"active", "trialing"})
     if not active:
+        billing_trace(
+            "checkout_success:abonnement_nog_niet_actief",
+            email=_mask_email_for_log(email),
+            status=(sub or {}).get("status"),
+        )
         return {
             "ready": False,
             "message": "Abonnement wordt nog geactiveerd. Vernieuw over enkele seconden.",
         }
+    billing_trace(
+        "checkout_success:ready",
+        email=_mask_email_for_log(email),
+        plan=(sub or {}).get("plan_name"),
+        session_id_tail=sid[-14:],
+    )
     return {
         "ready": True,
         "api_key": api_key_obj["api_key"],

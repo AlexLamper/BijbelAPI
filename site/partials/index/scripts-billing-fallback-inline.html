@@ -228,6 +228,82 @@
             }
         }
 
+        function showEl(id, show) {
+            var el = byId(id);
+            if (!el) return;
+            el.classList.toggle('hidden', !show);
+        }
+
+        function pollCheckoutSuccessFallback(sessionId) {
+            if (!sessionId) return;
+            var attempts = 0;
+            var maxAttempts = 24;
+            var timer = null;
+            var reveal = byId('checkoutKeyReveal');
+            var keyValue = byId('checkoutKeyRevealValue');
+            var modalErr = byId('modalCheckoutError');
+            var topErr = byId('checkoutError');
+
+            function stop() {
+                if (timer) {
+                    window.clearInterval(timer);
+                    timer = null;
+                }
+            }
+
+            function setError(msg) {
+                if (modalErr) {
+                    modalErr.textContent = msg;
+                    modalErr.classList.remove('hidden');
+                }
+                if (topErr) {
+                    topErr.textContent = msg;
+                    topErr.classList.remove('hidden');
+                }
+            }
+
+            timer = window.setInterval(function () {
+                attempts += 1;
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/billing/checkout-success?session_id=' + encodeURIComponent(sessionId), true);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState !== 4) return;
+                    var data = null;
+                    try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) { data = {}; }
+
+                    if (xhr.status >= 200 && xhr.status < 300 && data && data.ready && data.api_key) {
+                        stop();
+                        if (keyValue) keyValue.textContent = data.api_key;
+                        if (reveal) showEl('checkoutKeyReveal', true);
+                        try {
+                            var remember = byId('chkRememberRevealedKey');
+                            if (!remember || remember.checked) {
+                                window.localStorage.setItem('bijbelapi_api_key', data.api_key);
+                            }
+                            if (data.billing_email) {
+                                window.localStorage.setItem('bijbelapi_billing_email', String(data.billing_email));
+                            }
+                        } catch (e2) {}
+                        return;
+                    }
+
+                    if (attempts >= maxAttempts) {
+                        stop();
+                        var msg = (data && data.message) ? data.message : 'Betaling is gelukt, maar sleutel komt nog niet terug. Vernieuw over enkele seconden.';
+                        setError(msg);
+                    }
+                };
+                xhr.onerror = function () {
+                    if (attempts >= maxAttempts) {
+                        stop();
+                        setError('Netwerkfout tijdens ophalen van je API-sleutel. Vernieuw de pagina opnieuw.');
+                    }
+                };
+                xhr.send();
+            }, 900);
+        }
+
         function bind() {
             var m = byId('btnCheckoutMonthly');
             var y = byId('btnCheckoutYearly');
@@ -235,6 +311,14 @@
             var pText = byId('btnPortalTextLink');
             var hPro = byId('btnHeaderPro');
             var mPro = byId('btnMobilePro');
+            var params = new URLSearchParams(window.location.search || '');
+
+            if (params.get('checkout') === 'success') showEl('checkoutBanner', true);
+            if (params.get('checkout') === 'cancelled') showEl('checkoutCancelledBanner', true);
+            if (params.get('checkout') === 'success' && params.get('session_id')) {
+                pollCheckoutSuccessFallback(params.get('session_id'));
+            }
+
             if (m) m.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_monthly'); };
             if (y) y.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackCheckout('pro_yearly'); };
             if (p) p.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); fallbackPortal(); };
