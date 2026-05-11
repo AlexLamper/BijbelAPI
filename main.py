@@ -13,6 +13,7 @@ import re
 import gzip
 import random
 import hashlib
+import math
 from datetime import date, datetime, timezone
 from xml.sax.saxutils import escape as xml_escape
 from typing import Any, Optional
@@ -192,6 +193,24 @@ PRO_TIER_DAILY_LIMIT = int(os.getenv("PRO_TIER_DAILY_LIMIT", "100000"))
 stripe.api_key = STRIPE_SECRET_KEY
 FREE_TIER_USAGE: dict[tuple[str, str], int] = {}
 PRO_TIER_USAGE: dict[tuple[str, str], int] = {}
+FREE_TIER_MINUTE_USAGE: dict[tuple[str, int, str], int] = {}
+PRO_TIER_MINUTE_USAGE: dict[tuple[str, int, str], int] = {}
+PRO_MINUTE_LIMIT_MULTIPLIER = max(2, int(os.getenv("PRO_MINUTE_LIMIT_MULTIPLIER", "30")))
+
+FREE_ROUTE_LIMITS_PER_MINUTE: dict[str, int] = {
+    "/api/random": 20,
+    "/api/verse": 30,
+    "/api/passage": 10,
+    "/api/books": 30,
+    "/api/chapters": 30,
+    "/api/verses": 30,
+    "/api/search": 10,
+    "/api/daytext": 5,
+    "/api/chapter": 20,
+    "/api/commentary": 20,
+    "/api/parse/reference": 20,
+    "/api/parse/references": 10,
+}
 
 # CORS settings
 app.add_middleware(
@@ -589,7 +608,6 @@ def mongo_status_public(request: Request):
 
 # --- Existing Bible endpoints (unchanged) ---
 @app.get("/api/random")
-@limiter.limit("20/minute")
 def get_random_verse(request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -606,7 +624,6 @@ def get_random_verse(request: Request, version: str = DEFAULT_TRANSLATION, x_api
     }
 
 @app.get("/api/verse")
-@limiter.limit("30/minute")
 def get_verse(book: str, chapter: str, verse: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -627,7 +644,6 @@ def get_verse(book: str, chapter: str, verse: str, request: Request, version: st
         raise HTTPException(status_code=404, detail="Vers niet gevonden")
 
 @app.get("/api/passage")
-@limiter.limit("10/minute")
 def get_passage(book: str, chapter: str, start: int, end: int, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -649,14 +665,12 @@ def get_passage(book: str, chapter: str, start: int, end: int, request: Request,
         raise HTTPException(status_code=404, detail="Passage niet gevonden")
 
 @app.get("/api/books")
-@limiter.limit("30/minute")
 def get_books(request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
     return list(all_versions[version_key]["data"].keys())
 
 @app.get("/api/chapters")
-@limiter.limit("30/minute")
 def get_chapters(book: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -667,7 +681,6 @@ def get_chapters(book: str, request: Request, version: str = DEFAULT_TRANSLATION
     return list(data[book_key].keys())
 
 @app.get("/api/verses")
-@limiter.limit("30/minute")
 def get_verses(book: str, chapter: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -681,7 +694,6 @@ def get_verses(book: str, chapter: str, request: Request, version: str = DEFAULT
         raise HTTPException(status_code=404, detail="Hoofdstuk niet gevonden")
 
 @app.get("/api/search")
-@limiter.limit("10/minute")
 def search_verses(request: Request, query: str = Query(..., min_length=1), version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -700,7 +712,6 @@ def search_verses(request: Request, query: str = Query(..., min_length=1), versi
     return results
 
 @app.get("/api/daytext")
-@limiter.limit("5/minute")
 def get_daytext(request: Request, seed: str = None, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -738,7 +749,6 @@ def get_versions(request: Request):
     ]
 
 @app.get("/api/chapter")
-@limiter.limit("20/minute")
 def get_chapter(book: str, chapter: str, request: Request, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
@@ -758,7 +768,6 @@ def get_chapter(book: str, chapter: str, request: Request, version: str = DEFAUL
 
 # --- COMMENTARY ENDPOINT ---
 @app.get("/api/commentary")
-@limiter.limit("20/minute")
 def get_commentary(request: Request, source: str, book: str, chapter: str, verse: str = None, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     """
@@ -884,6 +893,43 @@ def _enforce_pro_tier_limit(request: Request, api_key: str) -> None:
         )
 
 
+def _route_minute_limit(path: str) -> int:
+    if path in FREE_ROUTE_LIMITS_PER_MINUTE:
+        return FREE_ROUTE_LIMITS_PER_MINUTE[path]
+    if path.startswith("/api/parse/reference/"):
+        return FREE_ROUTE_LIMITS_PER_MINUTE["/api/parse/reference"]
+    return 30
+
+
+def _enforce_tiered_minute_limit(request: Request, key: Optional[str]) -> None:
+    path = str(request.url.path)
+    free_limit = _route_minute_limit(path)
+    bucket = int(math.floor(datetime.utcnow().timestamp() / 60))
+
+    if key:
+        token = hashlib.sha256(key.encode("utf-8")).hexdigest()[:32]
+        usage_key = (token, bucket, path)
+        count = PRO_TIER_MINUTE_USAGE.get(usage_key, 0) + 1
+        PRO_TIER_MINUTE_USAGE[usage_key] = count
+        pro_limit = free_limit * PRO_MINUTE_LIMIT_MULTIPLIER
+        if count > pro_limit:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Pro limiet bereikt: {pro_limit} requests per minuut voor dit endpoint.",
+            )
+        return
+
+    ip = _request_client_ip(request)
+    usage_key = (ip, bucket, path)
+    count = FREE_TIER_MINUTE_USAGE.get(usage_key, 0) + 1
+    FREE_TIER_MINUTE_USAGE[usage_key] = count
+    if count > free_limit:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Free limiet bereikt: {free_limit} requests per minuut voor dit endpoint.",
+        )
+
+
 def ensure_paid_access(request: Request, key: Optional[str]) -> None:
     """
     Enforce billing entitlement when BILLING_ENFORCED=true.
@@ -891,6 +937,7 @@ def ensure_paid_access(request: Request, key: Optional[str]) -> None:
     if not BILLING_ENFORCED:
         return
     if not key:
+        _enforce_tiered_minute_limit(request, None)
         _enforce_free_tier_limit(request)
         return
 
@@ -914,6 +961,7 @@ def ensure_paid_access(request: Request, key: Optional[str]) -> None:
             subscription_status=(subscription or {}).get("status"),
         )
         raise HTTPException(status_code=402, detail="Geen actief abonnement")
+    _enforce_tiered_minute_limit(request, key)
     _enforce_pro_tier_limit(request, key)
     if BILLING_TRACE_REQUESTS:
         billing_trace(
@@ -954,7 +1002,6 @@ class PortalSessionRequest(BaseModel):
 
 # Parsing endpoints
 @app.post("/api/parse/reference")
-@limiter.limit("20/minute")
 def parse_reference(request: Request, parse_req: ParseRequest, x_api_key: Optional[str] = Security(optional_api_key_header)):
     """Parse a single Bible reference with complex parsing support."""
     try:
@@ -967,7 +1014,6 @@ def parse_reference(request: Request, parse_req: ParseRequest, x_api_key: Option
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/parse/reference/{reference}")
-@limiter.limit("20/minute")
 def parse_single_reference(request: Request, reference: str, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     """Parse a single Bible reference via GET request."""
     try:
@@ -980,7 +1026,6 @@ def parse_single_reference(request: Request, reference: str, version: str = DEFA
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/parse/references")
-@limiter.limit("10/minute")
 def parse_multiple_references(request: Request, parse_req: ParseMultipleRequest, x_api_key: Optional[str] = Security(optional_api_key_header)):
     """Parse multiple Bible references with complex parsing support."""
     try:

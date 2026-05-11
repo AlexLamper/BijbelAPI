@@ -106,7 +106,7 @@
                     </p>
                     <ol class="mb-8 grid gap-3 text-sm leading-relaxed text-slate-200 sm:grid-cols-2">
                         <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4"><strong class="text-white">1) Betalen en sleutel ontvangen</strong><br>Klik "Start Pro", vul je e-mailadres in en betaal via Stripe. Na betaling zie je de sleutel direct op deze pagina.</li>
-                        <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4"><strong class="text-white">2) Sleutel opslaan</strong><br>Bewaar de sleutel veilig (wachtwoordmanager of env-bestand). De sleutel is ook opvraagbaar via <code class="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-100">GET /billing/status</code> met je sleutel als header.</li>
+                        <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4"><strong class="text-white">2) Sleutel direct veilig opslaan</strong><br>De sleutel wordt na checkout één keer automatisch getoond. Bewaar hem meteen in een wachtwoordmanager of env-bestand.</li>
                         <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4"><strong class="text-white">3) Sleutel gebruiken</strong><br>Stuur bij elke request de header <code class="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-100">x-api-key: JOUW-SLEUTEL</code> mee voor Pro-limieten.</li>
                         <li class="rounded-xl border border-slate-700 bg-slate-800/60 p-4"><strong class="text-white">4) Abonnement beheren</strong><br>Via het Stripe Customer Portal (knop hierboven of hieronder) kun je betaalmethode wijzigen, facturen downloaden of opzeggen.</li>
                     </ol>
