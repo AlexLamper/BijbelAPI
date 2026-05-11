@@ -148,8 +148,8 @@ results = r.json()</pre>
         <h3 class="mb-4 text-lg font-semibold text-slate-900 fade-in-section">Alle endpoints</h3>
         <p class="mb-5 text-sm text-slate-500 fade-in-section">Volledige interactieve documentatie op <a href="/docs" class="font-medium text-blue-600 hover:underline">/docs</a> (Swagger) en <a href="/redoc" class="font-medium text-blue-600 hover:underline">/redoc</a>.</p>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200 fade-in-section">
-            <table class="min-w-full text-left text-sm">
+        <div class="fade-in-section -mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
+            <table class="w-full min-w-[760px] text-left text-sm rounded-xl border border-slate-200">
                 <thead class="bg-slate-50 text-slate-700">
                     <tr>
                         <th class="w-20 px-4 py-3 font-semibold">Methode</th>
@@ -171,6 +171,9 @@ results = r.json()</pre>
     .api-url-copy { opacity: 0; transition: opacity 0.15s; }
     tr:hover .api-url-copy { opacity: 1; }
     .api-tab-active { color: #2563eb; border-bottom: 2px solid #2563eb; background: white; }
+    @media (max-width: 767px) {
+        .api-url-copy { opacity: 1; }
+    }
 </style>
 
 <script>
