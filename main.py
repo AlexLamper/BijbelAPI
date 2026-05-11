@@ -216,19 +216,15 @@ async def log_requests(request: Request, call_next):
     return response
 
 # --- Multi-version support for Bible texts ---
-DEFAULT_TRANSLATION = "nbg1951"
-SUPPORTED_TRANSLATIONS = {"nbg1951", "bb", "sv", "nld1939", "hsv"}
+DEFAULT_TRANSLATION = "sv"
+SUPPORTED_TRANSLATIONS = {"bb", "sv", "hsv"}
 LEGACY_TRANSLATIONS = {"asv", "kjv"}
 ENGLISH_COMMENTARY_KEYS = {"matthew-henry"}
 TRANSLATION_ALIASES = {
     "statenvertaling": "sv",
+    "staten vertaling": "sv",
     "stve": "sv",
     "herziene-statenvertaling": "hsv",
-    "nbg": "nbg1951",
-    "nbg51": "nbg1951",
-    "nld": "nld1939",
-    "nld39": "nld1939",
-    "nld-1939": "nld1939",
     "basisbijbel": "bb",
     "nlb": "bb",
 }

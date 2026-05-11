@@ -70,12 +70,12 @@ De parse-endpoints ondersteunen complexe bijbelverwijzingen die traditionele API
 
 ```bash
 # Eén complexe verwijzing (GET)
-curl "https://bijbelapi.com/api/parse/reference/Psalm%20104:26-36,37?version=nbg1951"
+curl "https://bijbelapi.com/api/parse/reference/Psalm%20104:26-36,37?version=bb"
 
 # Parse via POST met gekozen vertaling
 curl -X POST "https://bijbelapi.com/api/parse/reference" \
   -H "Content-Type: application/json" \
-  -d '{"reference": "Lukas 1:39-45[46-55]", "version": "nld1939"}'
+  -d '{"reference": "Lukas 1:39-45[46-55]", "version": "hsv"}'
 
 # Meerdere verwijzingen
 curl -X POST "https://bijbelapi.com/api/parse/references" \
@@ -105,8 +105,6 @@ curl -X POST "https://bijbelapi.com/api/parse/references" \
 
 Huidige vertaalcodes:
 
-- `nbg1951` (Nederlandse Bijbelvertaling NBG 1951)
-- `nld1939` (Nederlandse Bijbelvertaling NLD 1939)
 - `sv` (Statenvertaling)
 - `hsv` (Herziene Statenvertaling)
 - `bb` (BasisBijbel)

@@ -46,7 +46,7 @@ def github_download_file(download_url: str, dest: Path, token: str | None) -> No
 def github_fetch_raw_file(repo: str, branch: str, file_path: str, token: str | None) -> bytes:
     """
     Fetch file bytes via Contents API (works for private repos where download_url is null).
-    file_path: path within repo, e.g. data/nbg1951.json
+    file_path: path within repo, e.g. data/basisbijbel.json
     """
     # Encode each path segment; keep slashes
     parts = [quote(p, safe="") for p in file_path.split("/") if p]

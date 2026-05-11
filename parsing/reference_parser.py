@@ -16,7 +16,7 @@ from .book_normalization import resolve_book_name_for_data
 class ReferenceParser:
     """Parses complex Bible references and fetches formatted text."""
     
-    def __init__(self, all_versions: dict, version: str = "nbg1951"):
+    def __init__(self, all_versions: dict, version: str = "sv"):
         """
         Initialize the reference parser.
         
@@ -29,13 +29,9 @@ class ReferenceParser:
         self.book_normalizer = BookNormalizer()
         self.translation_aliases = {
             "statenvertaling": "sv",
+            "staten vertaling": "sv",
             "stve": "sv",
             "herziene-statenvertaling": "hsv",
-            "nbg": "nbg1951",
-            "nbg51": "nbg1951",
-            "nld": "nld1939",
-            "nld39": "nld1939",
-            "nld-1939": "nld1939",
             "basisbijbel": "bb",
             "nlb": "bb",
         }
