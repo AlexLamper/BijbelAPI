@@ -225,7 +225,7 @@ function openCheckoutModal(plan) {
     if (planLabel) {
         planLabel.textContent = _modalCurrentPlan === 'pro_yearly'
             ? 'Pro Jaarlijks — €99,99 / jaar'
-            : 'Pro Maandelijks — €9,99 / maand';
+            : 'Pro Maandelijks - €9,99 / maand';
     }
     const emailInput = document.getElementById('modalCheckoutEmail');
     if (emailInput) {

@@ -186,7 +186,7 @@
             <div class="px-6 py-5">
                 <ul class="mb-5 space-y-2 text-sm text-slate-600">
                     <li class="flex items-center gap-2"><svg class="h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Directe toegang tot je API-sleutel na betaling</li>
-                    <li class="flex items-center gap-2"><svg class="h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>100.000 requests per dag per sleutel</li>
+                    <li class="flex items-center gap-2"><svg class="h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>{{PRO_TIER_DAILY_LIMIT}} requests per dag per sleutel</li>
                     <li class="flex items-center gap-2"><svg class="h-4 w-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Maandelijks opzegbaar via Stripe Portal</li>
                 </ul>
                 <label for="modalCheckoutEmail" class="block text-sm font-medium text-slate-700">E-mailadres</label>
@@ -199,10 +199,23 @@
                     Doorgaan naar Stripe Checkout
                 </button>
                 <p class="mt-3 text-center text-xs text-slate-400">
-                    Beveiligd door <strong>Stripe</strong> &mdash; iDEAL, Mastercard, Visa
+                    Beveiligd door <strong>Stripe</strong> - iDEAL, Mastercard, Visa
                 </p>
             </div>
         </dialog>
+
+        <section id="projects-used-in" class="bg-white border-y border-slate-200">
+            <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 md:px-8 2xl:px-6 py-10 md:py-12">
+                <div class="mx-auto max-w-3xl text-center fade-in-section">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-600">Gebruikt in projecten</p>
+                    <p class="text-sm leading-relaxed text-slate-600">Deze API wordt momenteel gebruikt in:</p>
+                </div>
+                <div class="mx-auto mt-5 grid max-w-3xl gap-3 sm:grid-cols-2 fade-in-section">
+                    <a href="https://www.bijbelquiz.com" target="_blank" rel="noopener noreferrer" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 hover:border-blue-300 hover:text-blue-700 transition-colors">www.bijbelquiz.com</a>
+                    <a href="https://www.bijbel-studie.com" target="_blank" rel="noopener noreferrer" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 hover:border-blue-300 hover:text-blue-700 transition-colors">www.bijbel-studie.com</a>
+                </div>
+            </div>
+        </section>
 
         <!-- ============================================================
              PORTAL MODAL
