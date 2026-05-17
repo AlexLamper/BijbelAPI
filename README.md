@@ -109,6 +109,8 @@ Huidige vertaalcodes:
 - `hsv` (Herziene Statenvertaling)
 - `bb` (BasisBijbel)
 
+- `matthew-henry` (Bijbelcommentaar)
+
 ## Verdere uitbreiding
 
 Geplande richtingen:
