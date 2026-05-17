@@ -517,18 +517,19 @@ all_commentaries = load_commentaries()
 
 def normalize_commentary_book(source_key: str, book_name: str):
     """
-    Try to match book_name (like 'Genesis') to an entry in the commentary file.
-    Returns the stored book key (e.g. 'Genesis') or None.
+    Try to match book_name (e.g. Dutch 'Johannes' or English 'John') to an entry in the commentary file.
+    Uses the same token/id resolution as bible text endpoints; commentary JSON keys are often English.
+    Returns the stored book key (e.g. 'John') or None.
     """
     src = all_commentaries.get(source_key)
     if not src:
         return None
-    # First try case-insensitive name match
-    for name in src.get("books", {}).keys():
-        if name.lower().replace("ë","e") == book_name.lower().replace("ë","e"):
-            return name
-    # Then try matching by id field inside each book
-    for name, info in src.get("books", {}).items():
+    books = src.get("books", {})
+    resolved = resolve_book_name_for_data(book_name, books)
+    if resolved:
+        return resolved
+    # Fallback: explicit id field in commentary entries
+    for name, info in books.items():
         if info.get("id", "").lower() == book_name.lower():
             return name
     return None
