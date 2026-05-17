@@ -248,6 +248,7 @@ TRANSLATION_ALIASES = {
     "nlb": "bb",
 }
 COMMENTARY_SOURCE_ALIASES = {
+    "matthew-henry": "matthew_henry_nl",
     "matthew-henry-nl": "matthew_henry_nl",
 }
 
@@ -455,35 +456,61 @@ def normalize_book_name(version_key, book_name):
 # --- Commentary loading (Matthew Henry, etc.) ---
 COMMENTARIES_DIR = os.path.join(BASE_DIR, "commentaries")
 
+
+def _commentary_candidate_dirs() -> list[str]:
+    out: list[str] = []
+    for d in [
+        os.path.join(DATA_DIR, "commentaries"),
+        os.path.join(DEFAULT_DATA_DIR, "commentaries"),
+        os.path.join(PRIVATE_DATA_FALLBACK, "commentaries"),
+        COMMENTARIES_DIR,
+    ]:
+        if d not in out:
+            out.append(d)
+    return out
+
 def load_commentaries():
     commentaries = {}
-    if not os.path.isdir(COMMENTARIES_DIR):
-        logging.warning(f"Commentaries dir '{COMMENTARIES_DIR}' not found.")
-        return commentaries
-    
-    # Walk through all directories to find JSON files
-    for root, dirs, files in os.walk(COMMENTARIES_DIR):
-        for fname in files:
-            path = os.path.join(root, fname)
-            raw = None
-            try:
-                if fname.endswith(".json"):
-                    with open(path, encoding="utf-8") as f:
-                        raw = json.load(f)
-                elif fname.endswith(".json.gz"):
-                    with gzip.open(path, "rt", encoding="utf-8") as f:
-                        raw = json.load(f)
-                
-                if raw:
-                    # identify key: meta.id or filename without ext
-                    key = raw.get("meta", {}).get("id") or fname.replace(".json", "").replace(".gz", "")
-                    if key in ENGLISH_COMMENTARY_KEYS or "\\en\\" in path.replace("/", "\\"):
-                        logging.info(f"Sla Engelse commentary over: {key}")
+    candidate_dirs = _commentary_candidate_dirs()
+    found_any_dir = False
+
+    # Walk through all candidate directories to find JSON files
+    for base_dir in candidate_dirs:
+        if not os.path.isdir(base_dir):
+            continue
+        found_any_dir = True
+        for root, dirs, files in os.walk(base_dir):
+            for fname in files:
+                path = os.path.join(root, fname)
+                raw = None
+                try:
+                    if fname.endswith(".json"):
+                        with open(path, encoding="utf-8") as f:
+                            raw = json.load(f)
+                    elif fname.endswith(".json.gz"):
+                        with gzip.open(path, "rt", encoding="utf-8") as f:
+                            raw = json.load(f)
+                    else:
                         continue
-                    commentaries[key] = raw
-                    logging.info(f"Loaded commentary '{key}' from {path}")
-            except Exception as e:
-                logging.warning(f"Failed to load commentary file {path}: {e}")
+
+                    if raw:
+                        # identify key: meta.id or filename without ext
+                        key = raw.get("meta", {}).get("id") or fname.replace(".json", "").replace(".gz", "")
+                        if key in ENGLISH_COMMENTARY_KEYS or "\\en\\" in path.replace("/", "\\"):
+                            logging.info(f"Sla Engelse commentary over: {key}")
+                            continue
+                        if key in commentaries:
+                            logging.info(f"Sla duplicate commentary over: {key} ({path})")
+                            continue
+                        commentaries[key] = raw
+                        logging.info(f"Loaded commentary '{key}' from {path}")
+                except Exception as e:
+                    logging.warning(f"Failed to load commentary file {path}: {e}")
+
+    if not found_any_dir:
+        logging.warning(
+            f"Geen commentaries-map gevonden. Geprobeerd: {candidate_dirs}"
+        )
     return commentaries
 
 all_commentaries = load_commentaries()

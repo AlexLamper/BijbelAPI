@@ -1,5 +1,5 @@
 """
-Download .json Bible data from a private GitHub repo (Contents API) into DATA_DIR.
+Download .json (and .json.gz) data from a private GitHub repo (Contents API) into DATA_DIR.
 Configure via env: GITHUB_TOKEN, GITHUB_DATA_REPO, GITHUB_DATA_BRANCH, GITHUB_DATA_SUBDIR, DATA_DIR, REQUIRE_PRIVATE_DATA.
 """
 from __future__ import annotations
@@ -37,10 +37,50 @@ def github_request_json(url: str, token: str | None) -> dict | list:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def github_download_file(download_url: str, dest: Path, token: str | None) -> None:
-    req = urllib.request.Request(download_url, headers=github_headers(token))
-    with urllib.request.urlopen(req, timeout=300) as resp:
-        dest.write_bytes(resp.read())
+def github_list_dir(repo: str, branch: str, dir_path: str, token: str | None) -> list[dict]:
+    """
+    List directory entries via GitHub Contents API.
+    dir_path: path within repo, e.g. "data/commentaries"
+    """
+    parts = [quote(p, safe="") for p in dir_path.split("/") if p]
+    encoded = "/".join(parts)
+    if encoded:
+        url = f"https://api.github.com/repos/{repo}/contents/{encoded}?ref={quote(branch)}"
+    else:
+        url = f"https://api.github.com/repos/{repo}/contents?ref={quote(branch)}"
+    payload = github_request_json(url, token)
+    if isinstance(payload, list):
+        return payload
+    return []
+
+
+def github_collect_json_files(repo: str, branch: str, subdir: str, token: str | None) -> list[str]:
+    """
+    Recursively collect JSON file paths beneath `subdir`.
+    Returns repo-relative file paths, e.g. data/commentaries/matthew_henry_nl.json
+    """
+    queue: list[str] = [subdir] if subdir else [""]
+    out: list[str] = []
+    seen: set[str] = set()
+    while queue:
+        current = queue.pop(0)
+        if current in seen:
+            continue
+        seen.add(current)
+        entries = github_list_dir(repo, branch, current, token)
+        for item in entries:
+            item_type = item.get("type")
+            item_path = str(item.get("path", "")).strip("/")
+            if not item_path:
+                continue
+            if item_type == "dir":
+                queue.append(item_path)
+                continue
+            if item_type != "file":
+                continue
+            if item_path.endswith(".json") or item_path.endswith(".json.gz"):
+                out.append(item_path)
+    return out
 
 
 def github_fetch_raw_file(repo: str, branch: str, file_path: str, token: str | None) -> bytes:
@@ -74,14 +114,13 @@ def main() -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     path_segment = f"/{subdir}" if subdir else ""
-    api_url = f"https://api.github.com/repos/{repo}/contents{path_segment}?ref={quote(branch)}"
     print(f"[data-sync] Ophalen inhoud van {repo}@{branch}{path_segment or '/'} …")
 
     if not token:
         print("[data-sync] WAARSCHUWING: GITHUB_TOKEN ontbreekt — private repo's falen waarschijnlijk.")
 
     try:
-        payload = github_request_json(api_url, token)
+        files = github_collect_json_files(repo, branch, subdir, token)
     except urllib.error.HTTPError as e:
         print(f"[data-sync] ERROR: GitHub HTTP {e.code}: {e.reason}")
         if require:
@@ -93,33 +132,27 @@ def main() -> int:
             return 1
         return 0
 
-    if not isinstance(payload, list):
-        print("[data-sync] ERROR: verwacht een map (lijst entries), kreeg enkel object.")
-        if require:
-            return 1
-        return 0
+    if not files:
+        print("[data-sync] WAARSCHUWING: geen JSON-bestanden gevonden in opgegeven subdir.")
 
     downloaded = 0
-    for item in payload:
-        if item.get("type") != "file":
-            continue
-        name = item.get("name", "")
-        if not name.endswith(".json"):
-            continue
-        rel_path = f"{subdir}/{name}" if subdir else name
-        dest = data_dir / name
-        print(f"[data-sync] download {rel_path} → {dest}")
+    subdir_norm = subdir.strip("/")
+    prefix = f"{subdir_norm}/" if subdir_norm else ""
+    for rel_path in files:
+        rel_path_norm = rel_path.strip("/")
+        if prefix and rel_path_norm.startswith(prefix):
+            target_rel = rel_path_norm[len(prefix):]
+        else:
+            target_rel = rel_path_norm
+        dest = data_dir / target_rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        print(f"[data-sync] download {rel_path} -> {dest}")
         try:
-            url = item.get("download_url")
-            # Private repos: GitHub often omits download_url; always use Contents API + raw.
-            if url and not token:
-                github_download_file(url, dest, token)
-            else:
-                body = github_fetch_raw_file(repo, branch, rel_path, token)
-                dest.write_bytes(body)
+            body = github_fetch_raw_file(repo, branch, rel_path_norm, token)
+            dest.write_bytes(body)
             downloaded += 1
         except Exception as e:
-            print(f"[data-sync] ERROR bij {name}: {e}")
+            print(f"[data-sync] ERROR bij {rel_path_norm}: {e}")
             if require:
                 return 1
 

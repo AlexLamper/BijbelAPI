@@ -124,6 +124,29 @@ results = r.json()</pre>
             </div>
         </div>
 
+        <!-- Matthew Henry commentary -->
+        <div class="mb-12 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-6 shadow-sm md:p-8 fade-in-section">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-amber-800">Commentaar</p>
+            <h3 class="mb-2 text-xl font-bold tracking-tight text-slate-900">Matthew Henry Bijbelverklaring (Nederlands)</h3>
+            <p class="mb-4 max-w-2xl text-sm leading-relaxed text-slate-600">
+                Volledige Nederlandstalige verklaring per boek en hoofdstuk: gebruik
+                <code class="rounded border border-amber-200 bg-white px-1.5 py-0.5 font-mono text-xs text-slate-800">source=matthew_henry_nl</code>
+                (of de alias <code class="rounded border border-amber-200 bg-white px-1.5 py-0.5 font-mono text-xs text-slate-800">matthew-henry-nl</code>).
+                Verzen <code class="font-mono text-xs">0</code> bevatten vaak het hoofdstukoverzicht.
+            </p>
+            <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-4">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Voorbeeld (één vers)</p>
+                <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">curl -sS "https://bijbelapi.com/api/commentary?source=matthew_henry_nl&amp;book=Johannes&amp;chapter=3&amp;verse=16" \
+  -H "Accept: application/json"</pre>
+            </div>
+            <p class="mt-3 text-xs text-slate-500">
+                Direct proberen:
+                <a href="/api/commentary?source=matthew_henry_nl&amp;book=Johannes&amp;chapter=3&amp;verse=16" class="font-medium text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Johannes 3:16</a>
+                <span class="text-slate-400"> &middot; </span>
+                <a href="/api/commentary?source=matthew_henry_nl&amp;book=Johannes&amp;chapter=3" class="font-medium text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">heel hoofdstuk 3</a>
+            </p>
+        </div>
+
         <!-- Stats bar -->
         <div class="mb-8 flex flex-wrap gap-4 fade-in-section">
             <div class="flex min-h-[2.875rem] flex-1 basis-[12rem] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm text-slate-500">
@@ -205,7 +228,7 @@ results = r.json()</pre>
         { method: 'GET',  path: '/api/verses',                      desc: 'Lijst met versnummers per hoofdstuk',        cat: 'navigatie' },
         { method: 'GET',  path: '/api/search',                      desc: 'Zoeken in bijbeltekst',                      cat: 'zoeken' },
         { method: 'GET',  path: '/api/versions',                    desc: 'Beschikbare vertalingen + metadata',         cat: 'meta' },
-        { method: 'GET',  path: '/api/commentary',                  desc: 'Nederlands commentaar op hoofdstuk of vers', cat: 'tekst' },
+        { method: 'GET',  path: '/api/commentary',                  desc: 'Matthew Henry Bijbelverklaring (NL); source=matthew_henry_nl', cat: 'tekst' },
         { method: 'POST', path: '/api/parse/reference',             desc: 'Bijbelverwijzing parseren (via body)',       cat: 'zoeken' },
         { method: 'GET',  path: '/api/parse/reference/{reference}', desc: 'Bijbelverwijzing parseren via URL',          cat: 'zoeken' },
         { method: 'POST', path: '/api/parse/references',            desc: 'Meerdere verwijzingen parseren',             cat: 'zoeken' },
