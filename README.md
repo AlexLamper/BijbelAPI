@@ -4,7 +4,7 @@
 
 *Een REST API om Bijbelteksten en Nederlandstalige commentaargegevens op te vragen over meerdere ondersteunde vertalingen. Bedoeld voor ontwikkelaars, theologen, studenten, kerken en digitale Bijbelprojecten.*
 
----
+[Bekijk Bijbel API](https://www.bijbelapi.com)
 
 ## Functies
 
@@ -15,8 +15,6 @@
 - 📅 **Dagtekst** (optioneel met vaste seed voor herhaling)
 - 🧠 **Slim parsen** van complexe bijbelverwijzingen  
 - 📝 **Commentaar-endpoint** voor hoofdstukken en verzen (Nederlandstalige bron) 
-
----
 
 ## 🌐 API-endpoints
 
@@ -46,8 +44,6 @@ De **publieke BijbelAPI** staat in:
 
 - `/docs` – Swagger UI  
 - `/redoc` – ReDoc
-
----
 
 ## Slim verwijzingen parsen
 
@@ -99,8 +95,6 @@ curl -X POST "https://bijbelapi.com/api/parse/references" \
 }
 ```
 
----
-
 ## Ondersteunde vertalingen
 
 Huidige vertaalcodes:
@@ -108,6 +102,8 @@ Huidige vertaalcodes:
 - `sv` (Statenvertaling)
 - `hsv` (Herziene Statenvertaling)
 - `bb` (BasisBijbel)
+
+- `matthew-henry` (Bijbelcommentaar)
 
 ## Verdere uitbreiding
 
@@ -118,21 +114,15 @@ Geplande richtingen:
 - Technische en productdocumentatie verder verbeteren.
 - Meer tooling rond databeheer, transformatie en validatie.
 
----
-
 ## Licentie
 
 Deze API staat onder de [MIT-licentie](LICENSE).
-
----
 
 ## Contact
 
 - GitHub: [@AlexLamper](https://github.com/AlexLamper)
 - Mail: `devlamper06@gmail.com`
 - BijbelAPI: [https://bijbelapi.com](https://bijbelapi.com)
-
----
 
 ## 📌 Versie
 
