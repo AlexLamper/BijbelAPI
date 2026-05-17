@@ -4,6 +4,8 @@
 
 *Een REST API om Bijbelteksten en Nederlandstalige commentaargegevens op te vragen over meerdere ondersteunde vertalingen. Bedoeld voor ontwikkelaars, theologen, studenten, kerken en digitale Bijbelprojecten.*
 
+[Bekijk Bijbel API](https://www.bijbelapi.com)
+
 ---
 
 ## Functies
