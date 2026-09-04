@@ -104,6 +104,7 @@ Huidige vertaalcodes:
 - `bb` (BasisBijbel)
 
 - `matthew-henry` (Bijbelcommentaar)
+- `calvijn` (Bijbelcommentaar van Johannes Calvijn, `calvijn_nl` — in voorbereiding: momenteel nog een tijdelijke tekst per hoofdstuk, in afwachting van toestemming van de rechthebbende)
 
 ## Verdere uitbreiding
 

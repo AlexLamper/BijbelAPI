@@ -253,6 +253,9 @@ COMMENTARY_SOURCE_ALIASES = {
     "matthew-henry": "matthew_henry_nl",
     "matthew-henry-nl": "matthew_henry_nl",
     "dachsel": "dachsel",
+    "calvijn": "calvijn_nl",
+    "calvijn-nl": "calvijn_nl",
+    "john-calvin": "calvijn_nl",
 }
 FOLDER_TRANSLATIONS = {
     "heilige_schrift_1917": {
@@ -295,6 +298,15 @@ COMMENTARY_META_OVERRIDES: dict[str, dict] = {
         "name": "Matthew Henry Commentaar (NL)",
         "lang": "nl",
         "description": "Nederlandse vertaling van het klassieke Engelstalige bijbelcommentaar van Matthew Henry (1662–1714). Bevat praktisch-devotionele uitleg voor elk bijbelboek.",
+    },
+    "calvijn_nl": {
+        "name": "Johannes Calvijn",
+        "lang": "nl",
+        "description": "Nederlandse tekst van de bijbelcommentaren van Johannes Calvijn "
+                       "(1509–1564). Momenteel in voorbereiding: dit commentaar bevat nog "
+                       "geen doorlopende tekst en toont per hoofdstuk een tijdelijke "
+                       "melding, in afwachting van toestemming van de rechthebbende "
+                       "(Stichting de Gihonbron).",
     },
 }
 

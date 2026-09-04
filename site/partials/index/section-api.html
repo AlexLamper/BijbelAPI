@@ -143,6 +143,9 @@ results = r.json()</pre>
                 Direct proberen:
                 <a href="/api/commentary?source=matthew_henry_nl&amp;book=Johannes&amp;chapter=3" class="font-medium text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">heel hoofdstuk 3</a>
             </p>
+            <p class="mt-3 text-xs text-slate-500">
+                Ook <span class="font-medium text-slate-700">Johannes Calvijn</span> (<code class="font-mono text-xs">source=calvijn_nl</code>) is in voorbereiding: de structuur is al beschikbaar, de Nederlandse tekst volgt zodra toestemming van de rechthebbende is verkregen.
+            </p>
         </div>
 
         <!-- Stats bar -->
@@ -227,6 +230,7 @@ results = r.json()</pre>
         { method: 'GET',  path: '/api/search',                      desc: 'Zoeken in bijbeltekst',                      cat: 'zoeken' },
         { method: 'GET',  path: '/api/versions',                    desc: 'Beschikbare vertalingen + metadata',         cat: 'meta' },
         { method: 'GET',  path: '/api/commentary',                  desc: 'Matthew Henry Bijbelverklaring (NL); source=matthew_henry_nl', cat: 'tekst' },
+        { method: 'GET',  path: '/api/commentary',                  desc: 'Johannes Calvijn (NL, in voorbereiding); source=calvijn_nl', cat: 'tekst' },
         { method: 'POST', path: '/api/parse/reference',             desc: 'Bijbelverwijzing parseren (via body)',       cat: 'zoeken' },
         { method: 'GET',  path: '/api/parse/reference/{reference}', desc: 'Bijbelverwijzing parseren via URL',          cat: 'zoeken' },
         { method: 'POST', path: '/api/parse/references',            desc: 'Meerdere verwijzingen parseren',             cat: 'zoeken' },
