@@ -623,6 +623,10 @@ def load_commentaries():
             for fname in files:
                 path = os.path.join(root, fname)
                 raw = None
+                # Sidecar metadata (e.g. calvijn_nl.coverage.json, written by the
+                # Calvijn translation pipeline) is not a commentary source.
+                if ".coverage." in fname:
+                    continue
                 try:
                     if fname.endswith(".json"):
                         with open(path, encoding="utf-8") as f:
