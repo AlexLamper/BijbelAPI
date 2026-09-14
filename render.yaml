@@ -10,6 +10,7 @@ services:
       # Secrets in Render Dashboard handmatig/koppelen: MONGODB_URI, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
       # STRIPE_PRICE_ID_PRO_MONTHLY, STRIPE_PRICE_ID_PRO_YEARLY. Optioneel: BILLING_ENFORCED=true, APP_BASE_URL,
       # FREE_TIER_DAILY_LIMIT, PRO_TIER_DAILY_LIMIT, DEBUG_BILLING=false
+      # INTERNAL_API_KEYS: comma-separated first-party keys (BijbelStudie server), skip billing + limits.
       - key: PYTHON_VERSION
         value: 3.11
       - key: DATA_DIR

@@ -143,8 +143,26 @@ results = r.json()</pre>
                 Direct proberen:
                 <a href="/api/commentary?source=matthew_henry_nl&amp;book=Johannes&amp;chapter=3" class="font-medium text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">heel hoofdstuk 3</a>
             </p>
+        </div>
+
+        <!-- Johannes Calvijn commentary -->
+        <div class="mb-12 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-6 shadow-sm md:p-8 fade-in-section">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-amber-800">Commentaar</p>
+            <h3 class="mb-2 text-xl font-bold tracking-tight text-slate-900">Johannes Calvijn Bijbelcommentaar (Nederlands)</h3>
+            <p class="mb-4 max-w-2xl text-sm leading-relaxed text-slate-600">
+                Nederlandse vertaling van Calvijns commentaren, uit de publiek-domein uitgave van de Calvin Translation Society: gebruik
+                <code class="rounded border border-amber-200 bg-white px-1.5 py-0.5 font-mono text-xs text-slate-800">source=calvijn_nl</code>
+                (of de alias <code class="rounded border border-amber-200 bg-white px-1.5 py-0.5 font-mono text-xs text-slate-800">calvijn</code>).
+                Calvijn becommentarieert vaak groepen verzen, dus niet elk versnummer komt voor; vers <code class="font-mono text-xs">0</code> bevat de inleiding.
+                De vertaling wordt hoofdstuk voor hoofdstuk aangevuld.
+            </p>
+            <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-4">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Voorbeeld (heel hoofdstuk)</p>
+                <pre class="overflow-x-auto font-mono text-xs leading-relaxed text-slate-300">curl -sS "https://bijbelapi.com/api/commentary?source=calvijn_nl&amp;book=Genesis&amp;chapter=1"   -H "Accept: application/json"</pre>
+            </div>
             <p class="mt-3 text-xs text-slate-500">
-                Ook <span class="font-medium text-slate-700">Johannes Calvijn</span> (<code class="font-mono text-xs">source=calvijn_nl</code>) is in voorbereiding: de structuur is al beschikbaar, de Nederlandse tekst volgt zodra toestemming van de rechthebbende is verkregen.
+                Direct proberen:
+                <a href="/api/commentary?source=calvijn_nl&amp;book=Genesis&amp;chapter=1" class="font-medium text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Genesis 1</a>
             </p>
         </div>
 
@@ -230,7 +248,7 @@ results = r.json()</pre>
         { method: 'GET',  path: '/api/search',                      desc: 'Zoeken in bijbeltekst',                      cat: 'zoeken' },
         { method: 'GET',  path: '/api/versions',                    desc: 'Beschikbare vertalingen + metadata',         cat: 'meta' },
         { method: 'GET',  path: '/api/commentary',                  desc: 'Matthew Henry Bijbelverklaring (NL); source=matthew_henry_nl', cat: 'tekst' },
-        { method: 'GET',  path: '/api/commentary',                  desc: 'Johannes Calvijn (NL, in voorbereiding); source=calvijn_nl', cat: 'tekst' },
+        { method: 'GET',  path: '/api/commentary',                  desc: 'Johannes Calvijn Bijbelcommentaar (NL); source=calvijn_nl', cat: 'tekst' },
         { method: 'POST', path: '/api/parse/reference',             desc: 'Bijbelverwijzing parseren (via body)',       cat: 'zoeken' },
         { method: 'GET',  path: '/api/parse/reference/{reference}', desc: 'Bijbelverwijzing parseren via URL',          cat: 'zoeken' },
         { method: 'POST', path: '/api/parse/references',            desc: 'Meerdere verwijzingen parseren',             cat: 'zoeken' },

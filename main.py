@@ -13,6 +13,7 @@ import re
 import gzip
 import random
 import hashlib
+import hmac
 import math
 from datetime import date, datetime, timezone
 from xml.sax.saxutils import escape as xml_escape
@@ -302,11 +303,11 @@ COMMENTARY_META_OVERRIDES: dict[str, dict] = {
     "calvijn_nl": {
         "name": "Johannes Calvijn",
         "lang": "nl",
-        "description": "Nederlandse tekst van de bijbelcommentaren van Johannes Calvijn "
-                       "(1509–1564). Momenteel in voorbereiding: dit commentaar bevat nog "
-                       "geen doorlopende tekst en toont per hoofdstuk een tijdelijke "
-                       "melding, in afwachting van toestemming van de rechthebbende "
-                       "(Stichting de Gihonbron).",
+        "description": "Nederlandse vertaling van de bijbelcommentaren van Johannes Calvijn "
+                       "(1509–1564), vertaald uit de publiek-domein Engelse uitgave van de "
+                       "Calvin Translation Society. De vertaling wordt hoofdstuk voor "
+                       "hoofdstuk aangevuld; nog niet vertaalde hoofdstukken tonen een "
+                       "tijdelijke melding.",
     },
 }
 
@@ -1167,10 +1168,24 @@ def _enforce_tiered_minute_limit(request: Request, key: Optional[str]) -> None:
         )
 
 
+# First-party consumers (BijbelStudie's server) that must not be billed or
+# rate-limited. Comma-separated secrets in INTERNAL_API_KEYS; never shown to a
+# browser - BijbelStudie sends it only from its own server routes.
+INTERNAL_API_KEYS = tuple(k.strip() for k in os.getenv("INTERNAL_API_KEYS", "").split(",") if k.strip())
+
+
+def _is_internal_key(key: Optional[str]) -> bool:
+    if not key or not INTERNAL_API_KEYS:
+        return False
+    return any(hmac.compare_digest(key, k) for k in INTERNAL_API_KEYS)
+
+
 def ensure_paid_access(request: Request, key: Optional[str]) -> None:
     """
     Enforce billing entitlement when BILLING_ENFORCED=true.
     """
+    if _is_internal_key(key):
+        return
     if not BILLING_ENFORCED:
         return
     if not key:
