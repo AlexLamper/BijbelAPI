@@ -30,7 +30,7 @@
 | GET      | `/api/chapters?book=...`                                    | Hoofdstukken in een boek                                    |
 | GET      | `/api/verses?book=...&chapter=...`                          | Versnummers in een hoofdstuk                                |
 | GET      | `/api/search?query=...`                                     | Zoeken in bijbeltekst                                       |
-| GET      | `/api/daytext?seed=...`                                     | Dagtekst, optioneel met seed                                |
+| GET      | `/api/daytext?seed=...`                                     | Dagtekst uit een samengestelde lijst (daytext/pool.json), per Amsterdamse kalenderdag; seed=jjjj-mm-dd kiest die dag. Extra veld `verse_end` bij korte passages |
 | GET      | `/api/versions`                                             | Beschikbare vertalingen + metadata                          |
 | GET      | `/api/chapter?book=...&chapter=...`                         | Hele hoofdstuk                                              |
 | GET      | `/api/commentary?source=...&book=...&chapter=...`           | Commentaar op een heel hoofdstuk (bijv. `matthew_henry_nl`) |

@@ -22,6 +22,7 @@ from dotenv import load_dotenv
 import stripe
 import uuid
 from parsing.book_normalization import resolve_book_name_for_data
+import daytext
 
 # SlowAPI imports voor rate limiting
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -937,25 +938,40 @@ def search_verses(request: Request, query: str = Query(..., min_length=1), versi
                     })
     return results
 
+DAYTEXT_POOL = daytext.load_pool()
+
+
+def build_daytext(seed: Optional[str], version_key: str) -> Optional[dict]:
+    """
+    The verse of the day from the curated pool (see daytext/__init__.py).
+
+    Same response keys and types as before (`version, book, chapter, verse,
+    text`, chapter/verse as strings) plus `verse_end`, which equals `verse`
+    for a single verse. For a short passage `verse` is its first verse and
+    `text` the verses joined. A reference the requested translation lacks is
+    served from the default translation (labelled as such in `version`);
+    only if that fails too does the next entry in the day's order step in.
+    """
+    order, index = daytext.selection(DAYTEXT_POOL, seed)
+    default_key = get_version_key(DEFAULT_TRANSLATION)
+    keys = [version_key] + ([default_key] if default_key and default_key != version_key else [])
+    for offset in range(len(order)):
+        entry = order[(index + offset) % len(order)]
+        for key in keys:
+            found = daytext.resolve_entry(all_versions[key]["data"], entry, resolve_book_name_for_data)
+            if found:
+                return {"version": key, **found}
+    return None
+
+
 @app.get("/api/daytext")
 def get_daytext(request: Request, seed: str = None, version: str = DEFAULT_TRANSLATION, x_api_key: Optional[str] = Security(optional_api_key_header)):
     ensure_paid_access(request, x_api_key)
     version_key = resolve_version_key(version)
-    data = all_versions[version_key]["data"]
-    books = list(data.keys())
-    base = seed if seed else date.today().isoformat()
-    hash_val = int(hashlib.sha256(base.encode()).hexdigest(), 16)
-    random.seed(hash_val)
-    book = random.choice(books)
-    chapter = random.choice(list(data[book].keys()))
-    verse = random.choice(list(data[book][chapter].keys()))
-    return {
-        "version": version_key,
-        "book": book,
-        "chapter": chapter,
-        "verse": verse,
-        "text": data[book][chapter][verse],
-    }
+    result = build_daytext(seed, version_key)
+    if not result:
+        raise HTTPException(status_code=503, detail="Tekst van de dag niet beschikbaar")
+    return result
 
 @app.get("/api/versions")
 @limiter.limit("10/minute")
