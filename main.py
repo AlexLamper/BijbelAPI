@@ -1737,7 +1737,18 @@ async def stripe_webhook(request: Request):
                     STRIPE_PRICE_ID_PRO_YEARLY if mp == "pro_yearly" else STRIPE_PRICE_ID_PRO_MONTHLY
                 ) or None
 
-    if event_type == "checkout.session.completed":
+    # Dit Stripe-account is gedeeld met BijbelStudie: elke BijbelStudie Pro-checkout
+    # komt hier ook binnen. Alleen sessies uit create_checkout_session hierboven
+    # dragen metadata.plan; zonder die guard kreeg elke BijbelStudie-abonnee een
+    # actieve API-key.
+    is_own_checkout = isinstance(md, dict) and md.get("plan") in ("pro_monthly", "pro_yearly")
+
+    if event_type == "checkout.session.completed" and not is_own_checkout:
+        billing_trace(
+            "stripe_webhook:checkout_niet_van_bijbelapi",
+            session_id=data.get("id"),
+        )
+    elif event_type == "checkout.session.completed":
         if not email:
             billing_trace(
                 "stripe_webhook:checkout_completed_GEEN_EMAIL",
